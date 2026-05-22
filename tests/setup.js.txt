@@ -1,0 +1,11 @@
+// Configuración global para los entornos de prueba de Merlín AI
+beforeAll(() => {
+  process.env.NODE_ENV = 'test';
+  process.env.FAL_AI_KEY = 'test-key';
+  process.env.GEMINI_API_KEY = 'test-key';
+  process.env.STRIPE_SECRET_KEY = 'sk_test_fake';
+});
+
+afterEach(() => {
+  jest.clearAllMocks();
+});

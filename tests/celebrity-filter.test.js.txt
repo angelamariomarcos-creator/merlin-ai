@@ -1,0 +1,41 @@
+// ==========================================================
+// tests/celebrity-filter.test.js
+// ==========================================================
+const { isPromptRestricted, ComplianceChecker } = require('../celebrity-filter');
+
+describe('Celebrity Filter', () => {
+    
+    test('Blocks celebrity names', () => {
+        const result = isPromptRestricted('Generate messi playing football');
+        expect(result.restricted).toBe(true);
+        expect(result.type).toBe('celebrity');
+    });
+ 
+    test('Blocks dangerous content', () => {
+        const result = isPromptRestricted('A graphic depiction of violence');
+        expect(result.restricted).toBe(true);
+        expect(result.type).toBe('dangerous');
+    });
+ 
+    test('Allows safe prompts', () => {
+        const result = isPromptRestricted('A majestic dragon flying over mountains');
+        expect(result.restricted).toBe(false);
+    });
+ 
+    test('Case insensitive blocking', () => {
+        const result = isPromptRestricted('generate CRISTIANO RONALDO');
+        expect(result.restricted).toBe(true);
+    });
+ 
+    test('ComplianceChecker suggests alternatives', () => {
+        const alternatives = ComplianceChecker.getAlternatives('messi');
+        expect(alternatives).toBeDefined();
+        expect(alternatives).not.toContain('messi');
+    });
+ 
+    test('Generates safe version of prompt', () => {
+        const unsafe = 'Taylor Swift singing on stage';
+        const safe = ComplianceChecker.generateSafeVersion(unsafe);
+        expect(safe).not.toContain('Taylor Swift');
+    });
+});

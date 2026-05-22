@@ -1,0 +1,31 @@
+// =============================================
+// .eslintrc.js
+// Configuración de reglas de estilo de código (Linter)
+// =============================================
+
+module.exports = {
+  // Define el entorno en el que se ejecuta el código
+  env: {
+    node: true,     // Tu servidor Express corre bajo Node.js
+    es2021: true,   // Habilita características modernas de JavaScript
+    jest: true,     // Reconoce los comandos globales de pruebas como 'describe' o 'test'
+  },
+  
+  // Utiliza el conjunto de reglas recomendadas por defecto por ESLint
+  extends: 'eslint:recommended',
+  
+  // Reglas personalizadas para el proyecto Merlín AI
+  rules: {
+    // Permite el uso de console.log, console.warn y console.error sin lanzar alertas molestas
+    'no-console': ['warn', { allow: ['warn', 'error', 'log'] }],
+    
+    // Obliga a que si declaras una variable y no la usas, salte un error (salvo que empiece por barra baja, ej: _req)
+    'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    
+    // Obliga a usar 'const' en lugar de 'let' si la variable nunca vuelve a ser reasignada
+    'prefer-const': 'error',
+    
+    // Obliga a usar siempre comparaciones estrictas (===) en lugar de las simples (==) para evitar fallos de lógica
+    'eqeqeq': ['error', 'always'],
+  },
+};

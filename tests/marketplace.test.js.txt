@@ -1,0 +1,73 @@
+// ==========================================================
+// tests/marketplace.test.js
+// ==========================================================
+const request = require('supertest');
+const app = require('../server'); // Vinculación con el servidor central
+
+describe('Marketplace API', () => {
+    
+    test('GET /marketplace/prompts returns all prompts', async () => {
+        const res = await request(app).get('/marketplace/prompts');
+        expect(res.statusCode).toBe(200);
+        expect(res.body.prompts).toBeDefined();
+        expect(Array.isArray(res.body.prompts)).toBe(true);
+    });
+ 
+    test('GET /marketplace/top returns top 10', async () => {
+        const res = await request(app).get('/marketplace/top');
+        expect(res.statusCode).toBe(200);
+        expect(res.body.prompts.length).toBeLessThanOrEqual(10);
+    });
+ 
+    test('POST /marketplace/upload creates new prompt', async () => {
+        const res = await request(app)
+            .post('/marketplace/upload')
+            .send({
+                name: 'Test Prompt',
+                prompt: 'A test prompt',
+                price: 0.50,
+                userId: 'testuser',
+                category: 'fantasy'
+            });
+        
+        expect(res.statusCode).toBe(200);
+        expect(res.body.success).toBe(true);
+    });
+ 
+    test('POST /marketplace/rate validates rating', async () => {
+        const res = await request(app)
+            .post('/marketplace/rate')
+            .send({
+                promptId: 999,
+                rating: 6 // Puntuación inválida (> 5)
+            });
+        
+        expect(res.statusCode).toBe(400);
+    });
+ 
+    test('GET /marketplace/search finds prompts by name', async () => {
+        const res = await request(app)
+            .get('/marketplace/search?q=cyberpunk');
+        
+        expect(res.statusCode).toBe(200);
+        expect(res.body.prompts.length).toBeGreaterThan(0);
+    });
+ 
+    test('GET /marketplace/categories returns category counts', async () => {
+        const res = await request(app).get('/marketplace/categories');
+        expect(res.statusCode).toBe(200);
+        expect(res.body.categories).toBeDefined();
+    });
+ 
+    test('GET /marketplace/:id returns prompt details', async () => {
+        const res = await request(app).get('/marketplace/1');
+        expect(res.statusCode).toBe(200);
+        expect(res.body.prompt).toBeDefined();
+        expect(res.body.related).toBeDefined();
+    });
+ 
+    test('404 for non-existent prompt', async () => {
+        const res = await request(app).get('/marketplace/99999');
+        expect(res.statusCode).toBe(404);
+    });
+});
