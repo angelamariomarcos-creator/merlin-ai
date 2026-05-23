@@ -3,385 +3,672 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Merlin AI — Marketplace de Prompts</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://js.stripe.com/v3/"></script>
+    <title>Merlin AI - Studio Pro</title>
     <style>
-        /* FONDO PRINCIPAL COHESIVO ANTI-ESPACIOS NEGROS */
-        body {
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0a0a1a 100%);
-            position: relative;
-            overflow-x: hidden;
-            margin: 0;
-            padding: 0;
-        }
-
-        .magic-reveal { filter: blur(12px); opacity: 0; animation: reveal 0.8s ease forwards; }
-        @keyframes reveal { to { filter: blur(0); opacity: 1; } }
-        .hidden { display: none; }
-        .btn-active { border-color: #06b6d4 !important; background: rgba(6,182,212,0.2) !important; }
-        .prompt-card { transition: all 0.3s; }
-        .prompt-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(6,182,212,0.2); }
-        .tab-button { transition: all 0.2s; }
-        .tab-button.active { background: #06b6d4; color: black; }
-        .cart-badge { position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; font-size: 12px; padding: 2px 6px; border-radius: 10px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        /* Animación de flotación para Merlín */
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
+        body {
+            background: #0a0a0a;
+            color: #e8e8e8;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            overflow-x: hidden;
         }
-        .floating-merlin { animation: float 3s ease-in-out infinite; }
-
-        /* MARCO DE MERLÍN COMO CAPA DE FONDO ESTÁTICA */
-        .marco-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('merlin-marco.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            background-attachment: fixed;
-            opacity: 0.12;
-            pointer-events: none;
-            z-index: 0;
+ 
+        /* LAYOUT PRINCIPAL */
+        .studio-container {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            gap: 0;
+            height: 100vh;
         }
-
-        /* CONTENEDOR FLUIDO */
-        .content-wrapper {
-            position: relative;
-            z-index: 1;
-            min-height: 100vh;
+ 
+        /* ════ SIDEBAR IZQUIERDA ════ */
+        .sidebar-left {
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f0f23 100%);
+            border-right: 1px solid rgba(139, 92, 246, 0.2);
+            overflow-y: auto;
+            padding: 20px;
             display: flex;
             flex-direction: column;
+            gap: 20px;
+        }
+ 
+        .logo-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+        }
+ 
+        .logo-header-box {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+ 
+        .logo-header span {
+            font-weight: bold;
+            font-size: 16px;
+            color: #06b6d4;
+        }
+ 
+        .prompt-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+ 
+        .prompt-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+ 
+        .prompt-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+ 
+        .prompt-input:focus {
+            outline: none;
+            border-color: #06b6d4;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+        }
+ 
+        .controls-tabs {
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+            padding-bottom: 12px;
+        }
+ 
+        .tab-btn {
+            padding: 8px 12px;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+ 
+        .tab-btn.active {
+            color: #06b6d4;
+            border-bottom-color: #06b6d4;
+        }
+ 
+        .controls-panel {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+        }
+ 
+        .controls-panel.active {
+            display: flex;
+        }
+ 
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+ 
+        .control-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #999;
+            text-transform: uppercase;
+        }
+ 
+        .control-value {
+            font-size: 11px;
+            color: #06b6d4;
+            font-weight: 500;
+        }
+ 
+        .slider {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(139, 92, 246, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+ 
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #06b6d4;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
+        }
+ 
+        .style-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+ 
+        .style-btn {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #999;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+ 
+        .style-btn:hover {
+            border-color: #06b6d4;
+            color: #06b6d4;
+            background: rgba(6, 182, 212, 0.1);
+        }
+ 
+        .style-btn.active {
+            background: #06b6d4;
+            color: black;
+            border-color: #06b6d4;
+        }
+ 
+        .generate-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+            border: none;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+ 
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(6, 182, 212, 0.3);
+        }
+ 
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+ 
+        .generate-btn.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+ 
+        /* ════ CANVAS CENTRAL ════ */
+        .canvas-center {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            background: #0a0a0a;
+            border-right: 1px solid rgba(139, 92, 246, 0.2);
+            border-left: 1px solid rgba(139, 92, 246, 0.2);
+        }
+ 
+        .toolbar {
+            background: #1a1a2e;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+            padding: 12px 20px;
+            display: flex;
             justify-content: space-between;
+            align-items: center;
         }
-
-        /* RELLENO DE ESPACIOS SUPERIOR E INFERIOR */
-        .space-filler-top {
-            height: 40px;
-            background: linear-gradient(180deg, rgba(6, 182, 212, 0.1) 0%, transparent 100%);
+ 
+        .toolbar-left {
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
-
-        .space-filler-bottom {
-            height: 40px;
-            background: linear-gradient(0deg, rgba(139, 92, 246, 0.1) 0%, transparent 100%);
+ 
+        .toolbar-btn {
+            padding: 8px 12px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #999;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
         }
-
-        /* CAPA DE PARTÍCULAS MÁGICAS */
-        .merlin-particles {
-            position: fixed;
+ 
+        .toolbar-btn:hover {
+            border-color: #06b6d4;
+            color: #06b6d4;
+        }
+ 
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+ 
+        .canvas-display {
+            background: rgba(139, 92, 246, 0.05);
+            border: 2px dashed rgba(6, 182, 212, 0.3);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 600px;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 13px;
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+        }
+ 
+        .canvas-display img {
             width: 100%;
             height: 100%;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-            z-index: 1;
+            object-fit: cover;
         }
-
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: radial-gradient(circle, #06b6d4 0%, transparent 100%);
+ 
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(6, 182, 212, 0.2);
+            border-top: 3px solid #06b6d4;
             border-radius: 50%;
-            opacity: 0;
-            animation: float-up 12s infinite linear;
+            animation: spin 1s linear infinite;
         }
-
-        @keyframes float-up {
-            0% { transform: translateY(105vh) translateX(0) scale(0.5); opacity: 0; }
-            10% { opacity: 0.6; }
-            90% { opacity: 0.6; }
-            100% { transform: translateY(-5vh) translateX(70px) scale(1.2); opacity: 0; }
+ 
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
-
-        /* RELLENOS LATERALES DINÁMICOS */
-        .side-gradient-left {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 150px;
+ 
+        /* ════ SIDEBAR DERECHA ════ */
+        .sidebar-right {
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f0f23 100%);
+            border-left: 1px solid rgba(139, 92, 246, 0.2);
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+ 
+        .history-header {
+            font-size: 12px;
+            font-weight: 600;
+            color: #06b6d4;
+            text-transform: uppercase;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+        }
+ 
+        .history-item {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+        }
+ 
+        .history-item:hover {
+            border-color: #06b6d4;
+            background: rgba(6, 182, 212, 0.1);
+        }
+ 
+        .history-thumb {
+            width: 100%;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+ 
+        .history-thumb img {
+            width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, rgba(6, 182, 212, 0.05) 0%, transparent 100%);
-            pointer-events: none;
-            z-index: 2;
+            object-fit: cover;
         }
-
-        .side-gradient-right {
-            position: fixed;
-            right: 0;
-            top: 0;
-            width: 150px;
-            height: 100%;
-            background: linear-gradient(270deg, rgba(139, 92, 246, 0.05) 0%, transparent 100%);
-            pointer-events: none;
-            z-index: 2;
+ 
+        .history-prompt {
+            color: #999;
+            font-size: 11px;
+            line-height: 1.3;
+            margin-bottom: 8px;
         }
-
-        /* MAQUETACIÓN DE PANELES */
-        .sidebar-merlin-left {
-            background: linear-gradient(180deg, rgba(20, 20, 45, 0.85) 0%, rgba(10, 10, 25, 0.95) 100%);
-            border: 1px solid rgba(6, 182, 212, 0.2);
-            backdrop-filter: blur(12px);
+ 
+        .history-time {
+            color: #666;
+            font-size: 10px;
         }
-
-        .main-content-panel {
-            background: rgba(15, 15, 32, 0.85);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(6, 182, 212, 0.15);
+ 
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+ 
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+ 
+        ::-webkit-scrollbar-thumb {
+            background: rgba(6, 182, 212, 0.4);
+            border-radius: 4px;
+        }
+ 
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(6, 182, 212, 0.6);
+        }
+ 
+        @media (max-width: 1400px) {
+            .studio-container {
+                grid-template-columns: 250px 1fr;
+            }
+            .sidebar-right {
+                display: none;
+            }
+        }
+ 
+        @media (max-width: 900px) {
+            .studio-container {
+                grid-template-columns: 1fr;
+            }
+            .sidebar-left {
+                display: none;
+            }
+        }
+ 
+        .error-message {
+            color: #ef4444;
+            font-size: 12px;
+            padding: 10px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+ 
+        .success-message {
+            color: #10b981;
+            font-size: 12px;
+            padding: 10px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 6px;
+            margin-top: 10px;
         }
     </style>
 </head>
-<body class="text-white">
-
-    <div class="marco-background"></div>
-    <div class="side-gradient-left"></div>
-    <div class="side-gradient-right"></div>
-    <div class="merlin-particles" id="particles"></div>
-
-    <div class="content-wrapper">
-        <div class="space-filler-top"></div>
-
-        <nav class="bg-gray-900/90 border-b border-gray-800 sticky top-0 z-50 backdrop-filter blur-md max-w-7xl w-full mx-auto rounded-t-xl">
-            <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-                <div class="flex items-center gap-4">
-                    <h1 class="text-2xl font-bold text-cyan-400 font-mono">✨ Merlin AI</h1>
-                    <div class="flex gap-2">
-                        <button id="tabGenerador" class="tab-button px-4 py-2 rounded text-sm font-bold active bg-cyan-600 text-black">
-                            🎨 Generador
-                        </button>
-                        <button id="tabMarketplace" class="tab-button px-4 py-2 rounded text-sm font-bold hover:bg-gray-700 text-gray-300">
-                            🏪 Marketplace
-                        </button>
-                        <button id="tabMisPrompts" class="tab-button px-4 py-2 rounded text-sm font-bold hover:bg-gray-700 text-gray-300">
-                            📝 Mis Prompts
-                        </button>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4">
-                    <button id="cartButton" class="relative bg-orange-600 px-4 py-2 rounded font-bold hover:bg-orange-700 text-white transition">
-                        🛒 Carrito
-                        <span id="cartCount" class="cart-badge hidden">0</span>
-                    </button>
-                    <div id="userInfo" class="text-sm text-gray-400 font-mono">
-                        No conectado
+<body>
+    <div class="studio-container">
+        
+        <!-- ════ SIDEBAR IZQUIERDA ════ -->
+        <div class="sidebar-left">
+            <div class="logo-header">
+                <div class="logo-header-box">✨</div>
+                <span>Merlin AI</span>
+            </div>
+ 
+            <div class="prompt-section">
+                <label class="prompt-label">Describe tu imagen</label>
+                <textarea id="prompt" class="prompt-input" placeholder="Un dragón dorado volando sobre montañas, estilo Pixar..."></textarea>
+            </div>
+ 
+            <div class="controls-tabs">
+                <button class="tab-btn active" onclick="switchTab('camera', event)">Cámara</button>
+                <button class="tab-btn" onclick="switchTab('style', event)">Estilo</button>
+                <button class="tab-btn" onclick="switchTab('advanced', event)">Avanzado</button>
+            </div>
+ 
+            <!-- TAB: CAMERA -->
+            <div id="camera" class="controls-panel active">
+                <div class="control-group">
+                    <label class="control-label">Ángulo de Cámara</label>
+                    <div class="style-grid">
+                        <button class="style-btn active" onclick="selectCamera('Frontal', event)">Frontal</button>
+                        <button class="style-btn" onclick="selectCamera('Perfil', event)">Perfil</button>
+                        <button class="style-btn" onclick="selectCamera('3/4', event)">3/4</button>
+                        <button class="style-btn" onclick="selectCamera('Aéreo', event)">Aéreo</button>
                     </div>
                 </div>
             </div>
-        </nav>
-
-        <div class="flex flex-col lg:flex-row gap-6 max-w-7xl w-full mx-auto px-4 flex-1 mt-6">
-            
-            <div class="w-full lg:w-64 sidebar-merlin-left flex flex-col items-center justify-start p-6 rounded-xl gap-6 self-start">
-                
-                <div id="merlinAvatarContainer" class="w-40 h-40 flex items-center justify-center bg-black/40 rounded-full border border-cyan-500/30 shadow-inner floating-merlin">
-                    <svg viewBox="0 0 200 200" class="w-full h-full p-2">
-                        <circle cx="100" cy="100" r="90" fill="#0d1b2a" stroke="#06b6d4" stroke-width="3"/>
-                        
-                        <path d="M60,150 L140,150 L130,190 L70,190 Z" fill="#111111"/>
-                        <text x="100" y="175" fill="#ed1c24" font-family="Impact, Arial Black" font-size="11" text-anchor="middle" font-weight="bold">IRON M.</text>
-                        
-                        <path d="M55,150 Q100,130 145,150 Q100,195 55,150" fill="#1e3a8a" opacity="0.7"/>
-
-                        <circle cx="100" cy="115" r="30" fill="#fbcfe8"/>
-                        <circle cx="68" cy="115" r="6" fill="#fbcfe8"/>
-                        <circle cx="132" cy="115" r="6" fill="#fbcfe8"/>
-
-                        <circle cx="90" cy="110" r="4" fill="#000"/>
-                        <circle cx="91" cy="109" r="1.5" fill="#fff"/>
-                        <circle cx="110" cy="110" r="4" fill="#000"/>
-                        <circle cx="111" cy="109" r="1.5" fill="#fff"/>
-                        
-                        <path d="M70,125 Q100,185 130,125 Q100,145 70,125" fill="#f3f4f6"/>
-                        <path d="M85,123 Q100,135 115,123 Q100,128 85,123" fill="#e5e7eb"/>
-                        
-                        <path d="M98,112 Q100,118 102,112 Z" fill="#f472b6"/>
-
-                        <path d="M65,95 L100,25 L135,95 Z" fill="#0284c7"/>
-                        <path d="M60,95 Q100,102 140,95 L135,90 Q100,96 65,90 Z" fill="#38bdf8"/>
-                        <rect x="80" y="65" width="40" height="14" fill="#fff" rx="2"/>
-                        <text x="100" y="76" fill="#0284c7" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle">PRYCA</text>
-                        
-                        <path d="M40,50 L43,55 L48,56 L44,60 L45,65 L40,62 L35,65 L36,60 L32,56 L37,55 Z" fill="#eab308"/>
-                        <path d="M160,70 L162,73 L166,74 L163,77 L164,81 L160,79 L156,81 L157,77 L154,74 L158,73 Z" fill="#eab308"/>
-                    </svg>
-                </div>
-
-                <div class="w-full bg-slate-900/90 border border-cyan-500/40 rounded-xl p-4 text-center text-xs text-cyan-300 font-medium min-h-[90px] flex items-center justify-center relative shadow-md shadow-cyan-900/20">
-                    <p id="merlinBubble">¡Hola, Javi! Estoy listo para generar código potente con IA. ¡Dale caña!</p>
-                </div>
-
-                <div class="text-center w-full">
-                    <div class="text-[10px] text-cyan-400 font-mono bg-cyan-950/40 border border-cyan-900/60 py-1 px-3 rounded-full inline-block">
-                        🔮 Asistente del Sistema
+ 
+            <!-- TAB: STYLE -->
+            <div id="style" class="controls-panel">
+                <div class="control-group">
+                    <label class="control-label">Estilo Artístico</label>
+                    <div class="style-grid">
+                        <button class="style-btn" onclick="selectStyle('Pixar', event)">Pixar</button>
+                        <button class="style-btn" onclick="selectStyle('Cómic', event)">Cómic</button>
+                        <button class="style-btn" onclick="selectStyle('Foto', event)">Foto</button>
+                        <button class="style-btn" onclick="selectStyle('Acuarela', event)">Acuarela</button>
                     </div>
                 </div>
             </div>
-
-            <div class="flex-1 main-content-panel rounded-xl p-6 self-stretch">
-                
-                <div id="generadorSection" class="w-full">
-                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                        <div class="space-y-6 xl:col-span-1">
-                            <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-800 space-y-4">
-                                <div>
-                                    <h3 class="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-2">临 Tu idea</h3>
-                                    <textarea id="prompt" class="w-full h-20 bg-black/40 text-white p-3 rounded text-sm border border-gray-700 focus:border-cyan-500 focus:outline-none transition resize-none" placeholder="Describe tu imagen..."></textarea>
-                                </div>
-
-                                <div>
-                                    <h3 class="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-2">📸 Vista de Cámara</h3>
-                                    <div class="grid grid-cols-2 gap-1.5">
-                                        <button class="camera-btn bg-gray-800/80 border border-gray-700 p-2 rounded text-[11px] hover:border-cyan-500 transition btn-active" data-camera="standard">Estándar</button>
-                                        <button class="camera-btn bg-gray-800/80 border border-gray-700 p-2 rounded text-[11px] hover:border-cyan-500 transition" data-camera="front view">Frontal</button>
-                                        <button class="camera-btn bg-gray-800/80 border border-gray-700 p-2 rounded text-[11px] hover:border-cyan-500 transition" data-camera="high angle shot">Picado</button>
-                                        <button class="camera-btn bg-gray-800/80 border border-gray-700 p-2 rounded text-[11px] hover:border-cyan-500 transition" data-camera="overhead view, drone photography, bird-eye view">Aéreo</button>
-                                        <button class="camera-btn bg-gray-800/80 border border-gray-700 p-2 rounded text-[11px] hover:border-cyan-500 transition" data-camera="low angle shot, heroic perspective">Contrapicado</button>
-                                        <button class="camera-btn bg-gray-800/80 border border-gray-700 p-2 rounded text-[11px] hover:border-cyan-500 transition" data-camera="macro photography, extreme close-up, highly detailed shot">Detalle</button>
-                                        <button class="camera-btn bg-gray-800/80 border border-gray-700 p-2 rounded text-[11px] hover:border-cyan-500 transition col-span-2" data-camera="isometric projection, 3D orthographic view, video game style">Isométrico</button>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <h3 class="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-2">🎨 Estilo</h3>
-                                    <div class="grid grid-cols-2 gap-1.5">
-                                        <button class="style-btn bg-gray-800/80 border border-gray-700 p-2 rounded text-[11px] hover:border-cyan-500 transition btn-active" data-style="ninguno">Ninguno</button>
-                                        <button class="style-btn bg-gray-800/80 border border-gray-700 p-2 rounded text-[11px] hover:border-cyan-500 transition" data-style="pixar">🎬 Pixar</button>
-                                        <button class="style-btn bg-gray-800/80 border border-gray-700 p-2 rounded text-[11px] hover:border-cyan-500 transition" data-style="comic">💭 Cómic</button>
-                                        <button class="style-btn bg-gray-800/80 border border-gray-700 p-2 rounded text-[11px] hover:border-cyan-500 transition" data-style="cyberpunk">🌐 Cyber</button>
-                                        <button class="style-btn bg-gray-800/80 border border-gray-700 p-2 rounded text-[11px] hover:border-cyan-500 transition" data-style="acuarela">🎭 Agua</button>
-                                        <button class="style-btn bg-gray-800/80 border border-gray-700 p-2 rounded text-[11px] hover:border-cyan-500 transition" data-style="dark">🌑 Dark</button>
-                                        <button class="style-btn bg-gray-800/80 border border-gray-700 p-2 rounded text-[11px] hover:border-cyan-500 transition" data-style="neon">⚡ Neon</button>
-                                        <button class="style-btn bg-gray-800/80 border border-purple-700 p-2 rounded text-[11px] hover:border-cyan-500 transition font-bold text-purple-300" data-style="mi-personaje">🤖 MI ESTILO</button>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-2 pt-2">
-                                    <button id="generateBtn" class="bg-cyan-500 text-black font-bold py-3 rounded col-span-2 hover:bg-cyan-400 transition text-sm">✨ Generar</button>
-                                    <button id="batchBtn" class="bg-green-600 text-white font-bold py-2 rounded text-xs hover:bg-green-500 transition">🔄 Batch</button>
-                                    <button id="panicBtn" class="bg-purple-600 text-white font-bold py-2 rounded text-xs hover:bg-purple-500 transition">🎲 Pánico</button>
-                                </div>
-
-                                <div id="loading" class="hidden text-gray-400 text-xs text-center animate-pulse">⏳ Generando magia...</div>
-                            </div>
-                        </div>
-
-                        <div class="xl:col-span-2 flex flex-col justify-between">
-                            <div id="output" class="bg-black/30 rounded-xl flex items-center justify-center overflow-hidden border border-gray-800/80 border-dashed p-4 min-h-[400px] xl:h-full">
-                                <p id="outputText" class="text-gray-500 font-light text-sm">Tu imagen aparecerá aquí</p>
-                            </div>
-
-                            <div id="actionButtons" class="hidden grid grid-cols-4 gap-2 mt-4">
-                                <button id="guardarBtn" class="bg-cyan-500 text-black py-2 rounded text-xs font-bold hover:bg-cyan-400 transition">💾 Guardar</button>
-                                <button id="compartirBtn" class="bg-green-600 text-white py-2 rounded text-xs font-bold hover:bg-green-500 transition">📤 Compartir</button>
-                                <button id="agregarCarritoBtn" class="bg-orange-600 text-white py-2 rounded text-xs font-bold hover:bg-orange-500 transition">🛒 Al Carrito</button>
-                                <button id="subirMarketplaceBtn" class="bg-purple-600 text-white py-2 rounded text-xs font-bold hover:bg-purple-500 transition">📢 Vender</button>
-                            </div>
-                        </div>
+ 
+            <!-- TAB: ADVANCED -->
+            <div id="advanced" class="controls-panel">
+                <div class="control-group">
+                    <label class="control-label">Pasos de Generación</label>
+                    <div class="control-value" id="stepsValue">50</div>
+                    <input type="range" min="20" max="100" value="50" class="slider" id="stepsSlider" oninput="document.getElementById('stepsValue').textContent = this.value">
+                </div>
+ 
+                <div class="control-group">
+                    <label class="control-label">Guidance Scale</label>
+                    <div class="control-value" id="guidanceValue">7.5</div>
+                    <input type="range" min="0" max="20" step="0.5" value="7.5" class="slider" id="guidanceSlider" oninput="document.getElementById('guidanceValue').textContent = this.value">
+                </div>
+            </div>
+ 
+            <button class="generate-btn" id="generateBtn" onclick="generateImage()">
+                ✨ Generar Imagen
+            </button>
+ 
+            <div id="messageBox"></div>
+        </div>
+ 
+        <!-- ════ CANVAS CENTRAL ════ -->
+        <div class="canvas-center">
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <button class="toolbar-btn" onclick="loadMarketplace()">🏪 Marketplace</button>
+                    <button class="toolbar-btn" onclick="toggleHistory()">📜 Historial</button>
+                </div>
+                <div>
+                    <button class="toolbar-btn" onclick="alert('Opciones en desarrollo')">⚙️ Opciones</button>
+                </div>
+            </div>
+ 
+            <div class="canvas-area">
+                <div class="canvas-display" id="canvasDisplay">
+                    <div style="text-align: center; color: #666;">
+                        <div style="font-size: 48px; margin-bottom: 10px;">✨</div>
+                        <div>Tu imagen aparecerá aquí</div>
                     </div>
                 </div>
-
-                <div id="marketplaceSection" class="hidden w-full">
-                    <div class="mb-6">
-                        <h2 class="text-3xl font-bold mb-4 font-mono text-cyan-400">🏪 Marketplace de Prompts</h2>
-                        
-                        <div class="flex gap-3 mb-6 flex-wrap">
-                            <input type="text" id="searchInput" class="bg-gray-800/80 text-white px-4 py-2 rounded border border-gray-700 flex-1 text-sm focus:outline-none focus:border-cyan-500" placeholder="Buscar prompts...">
-                            <select id="categoryFilter" class="bg-gray-800/80 text-white px-4 py-2 rounded border border-gray-700 text-sm focus:outline-none">
-                                <option value="all">📂 Todas las categorías</option>
-                                <option value="cyberpunk">🌐 Cyberpunk</option>
-                                <option value="fantasy">🐉 Fantasy</option>
-                                <option value="steampunk">⚙️ Steampunk</option>
-                                <option value="scifi">🚀 Sci-Fi</option>
-                                <option value="dark">🌑 Dark</option>
-                            </select>
-                            <select id="sortFilter" class="bg-gray-800/80 text-white px-4 py-2 rounded border border-gray-700 text-sm focus:outline-none">
-                                <option value="downloads">📊 Más Descargados</option>
-                                <option value="rating">⭐ Mejor Valorado</option>
-                                <option value="new">🆕 Más Nuevos</option>
-                            </select>
-                        </div>
-
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                            <div class="bg-gray-900/60 p-3 rounded border border-gray-800 text-center">
-                                <p class="text-gray-400 text-xs">Total Prompts</p>
-                                <p id="statPrompts" class="text-xl font-bold text-cyan-400 font-mono">0</p>
-                            </div>
-                            <div class="bg-gray-900/60 p-3 rounded border border-gray-800 text-center">
-                                <p class="text-gray-400 text-xs">Descargas</p>
-                                <p id="statDownloads" class="text-xl font-bold text-green-400 font-mono">0</p>
-                            </div>
-                            <div class="bg-gray-900/60 p-3 rounded border border-gray-800 text-center">
-                                <p class="text-gray-400 text-xs">Rating Promedio</p>
-                                <p id="statRating" class="text-xl font-bold text-yellow-400 font-mono">0</p>
-                            </div>
-                            <div class="bg-gray-900/60 p-3 rounded border border-gray-800 text-center">
-                                <p class="text-gray-400 text-xs">Ingresos</p>
-                                <p id="statRevenue" class="text-xl font-bold text-purple-400 font-mono">$0</p>
-                            </div>
-                        </div>
-
-                        <div id="promptsGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
-                    </div>
-                </div>
-
-                <div id="misPomptSection" class="hidden w-full">
-                    <div class="mb-6">
-                        <h2 class="text-3xl font-bold mb-4 font-mono text-cyan-400">📝 Mis Prompts</h2>
-                        <button id="crearNuevoPromptBtn" class="bg-cyan-500 text-black px-6 py-2.5 rounded font-bold hover:bg-cyan-400 mb-6 text-sm transition">
-                            ➕ Crear Nuevo Prompt
-                        </button>
-                        <div id="misPromptsGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
-                    </div>
-                </div>
-
             </div>
         </div>
-
-        <div class="space-filler-bottom"></div>
+ 
+        <!-- ════ SIDEBAR DERECHA ════ -->
+        <div class="sidebar-right">
+            <div class="history-header">Historial</div>
+            
+            <div class="history-item">
+                <div class="history-thumb" style="background: linear-gradient(135deg, #06b6d4, #8b5cf6); display: flex; align-items: center; justify-content: center; color: white; font-size: 30px;">✨</div>
+                <div class="history-prompt">Listo para generar tu primera imagen</div>
+                <div class="history-time">Ahora</div>
+            </div>
+ 
+            <div id="marketplaceList" style="display: none;">
+                <div class="history-header">Prompts Disponibles</div>
+                <div id="marketplacePlaceholder"></div>
+            </div>
+        </div>
     </div>
-
-    <div id="promptModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-        <div class="bg-gray-900 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-800 shadow-2xl">
-            <div class="p-6">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 id="modalTitle" class="text-xl font-bold text-cyan-400 font-mono"></h3>
-                        <p id="modalAuthor" class="text-gray-500 text-xs"></p>
-                    </div>
-                    <button onclick="cerrarModal()" class="text-gray-400 hover:text-white text-xl transition">✕</button>
-                </div>
-
-                <div class="bg-black/40 p-4 rounded-lg border border-gray-800 mb-4">
-                    <p id="modalPrompt" class="text-gray-300 text-xs font-mono"></p>
-                </div>
-
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 bg-gray-950/40 p-3 rounded-lg border border-gray-800/60">
-                    <div>
-                        <p class="text-gray-500 text-[10px] uppercase tracking-wider">Precio</p>
-                        <p id="modalPrice" class="text-lg font-bold text-green-400 font-mono">$0</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-[10px] uppercase tracking-wider">Rating</p>
-                        <p id="modalRating" class="text-lg font-bold text-yellow-400 font-mono">0 ⭐</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-[10px] uppercase tracking-wider">Descargas</p>
-                        <p id="modalDownloads" class="text-lg font-bold text-blue-400 font-mono">0</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-[10px] uppercase tracking-wider">Categoría</p>
-                        <p id="modalCategory" class="text-sm font-bold text-gray-300 font-mono">-</p>
-                    </div>
-                </div>
-
-                <div class="flex gap-2">
-                    <button id="modalComprarBtn" class="flex-1 bg-cyan-500 text-black font-bold py-2 rounded hover:bg-cyan-400 transition text-sm">
-                        🛒 Comprar $0
-                    </button>
-                    <button id="modalCopiarBtn" class="flex-1 bg-gray-800 text-white font-bold py-2 rounded hover:bg-gray-700 transition text-sm border border-gray-70
+ 
+    <script>
+        // STATE
+        let state = {
+            selectedCamera: 'Frontal',
+            selectedStyle: 'Ninguno',
+            currentImage: null,
+            generating: false
+        };
+ 
+        // SWITCH TABS
+        function switchTab(tabName, event) {
+            event.target.parentElement.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.controls-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+        }
+ 
+        // SELECT CAMERA
+        function selectCamera(camera, event) {
+            event.target.parentElement.querySelectorAll('.style-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            state.selectedCamera = camera;
+        }
+ 
+        // SELECT STYLE
+        function selectStyle(style, event) {
+            event.target.parentElement.querySelectorAll('.style-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            state.selectedStyle = style;
+        }
+ 
+        // GENERATE IMAGE
+        async function generateImage() {
+            const prompt = document.getElementById('prompt').value;
+            const btn = document.getElementById('generateBtn');
+            const canvas = document.getElementById('canvasDisplay');
+            const messageBox = document.getElementById('messageBox');
+ 
+            if (!prompt) {
+                showMessage('Escribe un prompt para generar', 'error');
+                return;
+            }
+ 
+            if (state.generating) return;
+ 
+            state.generating = true;
+            btn.classList.add('loading');
+            btn.textContent = '⏳ Generando...';
+            canvas.innerHTML = '<div class="loading-spinner"></div>';
+            messageBox.innerHTML = '';
+ 
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        style: state.selectedStyle,
+                        camera: state.selectedCamera
+                    })
+                });
+ 
+                const data = await response.json();
+ 
+                if (data.success) {
+                    state.currentImage = data.imageUrl;
+                    canvas.innerHTML = `<img src="${data.imageUrl}" alt="Generada">`;
+                    showMessage('✨ Imagen generada con éxito', 'success');
+                } else {
+                    showMessage('❌ Error: ' + data.error, 'error');
+                    canvas.innerHTML = '<div style="text-align: center; color: #666;"><div style="font-size: 48px; margin-bottom: 10px;">❌</div><div>Error al generar</div></div>';
+                }
+            } catch (error) {
+                showMessage('❌ Error de conexión: ' + error.message, 'error');
+                canvas.innerHTML = '<div style="text-align: center; color: #666;"><div style="font-size: 48px; margin-bottom: 10px;">❌</div><div>Error de conexión</div></div>';
+            } finally {
+                state.generating = false;
+                btn.classList.remove('loading');
+                btn.textContent = '✨ Generar Imagen';
+            }
+        }
+ 
+        // LOAD MARKETPLACE
+        async function loadMarketplace() {
+            const list = document.getElementById('marketplaceList');
+            const placeholder = document.getElementById('marketplacePlaceholder');
+ 
+            if (list.style.display === 'none') {
+                try {
+                    const response = await fetch('/marketplace/prompts');
+                    const data = await response.json();
+ 
+                    if (data.success && data.prompts.length > 0) {
+                        placeholder.innerHTML = data.prompts.map(p => `
+                            <div class="history-item">
+                                <div style="text-align: center; font-size: 30px; margin-bottom: 8px;">${p.image}</div>
+                                <div class="history-prompt"><strong>${p.title}</strong></div>
+                                <div class="history-time">$${p.price} - por ${p.author}</div>
+                            </div>
+                        `).join('');
+                    }
+                    list.style.display = 'block';
+                } catch (error) {
+                    alert('Error cargando marketplace: ' + error.message);
+                }
+            } else {
+                list.style.display = 'none';
+            }
+        }
+ 
+        // TOGGLE HISTORY
+        function toggleHistory() {
+            alert('Historial en desarrollo - guardaremos tus últimas generaciones');
+        }
+ 
+        // SHOW MESSAGE
+        function showMessage(text, type) {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.innerHTML = `<div class="${type}-message">${text}</div>`;
+            setTimeout(() => {
+                messageBox.innerHTML = '';
+            }, 5000);
+        }
+ 
+        // INITIAL
+        console.log('✅ Merlin AI Frontend cargado');
+        console.log('📍 Conectado a servidor:', window.location.origin);
+    </script>
+</body>
+</html>
