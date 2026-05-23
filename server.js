@@ -266,9 +266,15 @@ app.get('/', (req, res) => {
     `);
 });
  
-// ════ APP PRINCIPAL ════
+// ════ APP PRINCIPAL (CON CONTROL DE ERRORES ASIGNADO) ════
 app.get('/app', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    // Intenta encontrar index.html
+    const indexPath = path.join(__dirname, 'index.html');
+    res.sendFile(indexPath, (err) => {
+        if (err) {
+            res.status(500).send('index.html no encontrado en raíz');
+        }
+    });
 });
  
 // ════ API GENERADOR ════
@@ -343,7 +349,7 @@ app.use((req, res) => {
  
 // ════ ARRANCAR SERVIDOR ════
 app.listen(PORT, () => {
-    console.log(\`\n🚀 Servidor corriendo en: http://localhost:\${PORT}\`);
+    console.log(`\n🚀 Servidor corriendo en: http://localhost:${PORT}`);
     console.log('✅ Landing: http://localhost:' + PORT);
     console.log('✅ App: http://localhost:' + PORT + '/app');
     console.log('✅ Health: http://localhost:' + PORT + '/health\n');
