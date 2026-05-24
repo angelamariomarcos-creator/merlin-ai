@@ -3,97 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Merlin AI - Studio Pro</title>
+    <title>Merlin AI - Generador de Imágenes con IA</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             background: #0a0a0a;
             color: #e8e8e8;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
             overflow-x: hidden;
+            line-height: 1.6;
         }
  
-        /* LAYOUT PRINCIPAL */
+        /* ANIMACIONES */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+ 
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+ 
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+ 
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+ 
+        /* LAYOUT GRID */
         .studio-container {
             display: grid;
-            grid-template-columns: 280px 1fr 320px;
+            grid-template-columns: 300px 1fr 350px;
             gap: 0;
             height: 100vh;
         }
  
-        /* ════ SIDEBAR IZQUIERDA ════ */
+        /* ════ SIDEBAR IZQUIERDA - CONTROLES ════ */
         .sidebar-left {
             background: linear-gradient(180deg, #1a1a2e 0%, #0f0f23 100%);
             border-right: 1px solid rgba(139, 92, 246, 0.2);
             overflow-y: auto;
-            padding: 20px;
+            padding: 24px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 24px;
+            animation: slideIn 0.5s ease;
         }
  
-        .logo-header {
+        .logo-section {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 12px;
             padding-bottom: 20px;
             border-bottom: 1px solid rgba(139, 92, 246, 0.2);
         }
  
-        .logo-header-box {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #06b6d4, #8b5cf6);
-            border-radius: 8px;
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 22px;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
         }
  
-        .logo-header span {
-            font-weight: bold;
-            font-size: 16px;
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+ 
+        .logo-text h1 {
+            font-size: 18px;
+            font-weight: 700;
             color: #06b6d4;
+            letter-spacing: 1px;
         }
  
-        .prompt-section {
+        .logo-text p {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+ 
+        /* PROMPT INPUT */
+        .prompt-box {
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
  
         .prompt-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #999;
+            font-size: 11px;
+            font-weight: 700;
+            color: #06b6d4;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
  
-        .prompt-input {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            border-radius: 8px;
-            padding: 12px;
-            color: white;
+        .prompt-textarea {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1.5px solid rgba(139, 92, 246, 0.25);
+            border-radius: 10px;
+            padding: 14px;
+            color: #e8e8e8;
             font-size: 13px;
+            min-height: 140px;
             resize: vertical;
-            min-height: 120px;
             font-family: inherit;
             transition: all 0.3s;
+            overflow: hidden;
         }
  
-        .prompt-input:focus {
+        .prompt-textarea:focus {
             outline: none;
             border-color: #06b6d4;
             background: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
         }
  
-        .controls-tabs {
+        .prompt-textarea::placeholder {
+            color: #555;
+        }
+ 
+        /* TABS CONTROLES */
+        .tabs-container {
             display: flex;
             gap: 8px;
             border-bottom: 1px solid rgba(139, 92, 246, 0.2);
@@ -101,17 +143,19 @@
         }
  
         .tab-btn {
+            flex: 1;
             padding: 8px 12px;
             background: none;
             border: none;
             color: #666;
             cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            border-bottom: 2px solid transparent;
-            transition: all 0.3s;
+            font-size: 11px;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+            position: relative;
         }
  
         .tab-btn.active {
@@ -119,107 +163,142 @@
             border-bottom-color: #06b6d4;
         }
  
+        .tab-btn:hover {
+            color: #8b5cf6;
+        }
+ 
+        /* PANELES DE CONTROLES */
         .controls-panel {
             display: none;
             flex-direction: column;
-            gap: 15px;
+            gap: 16px;
         }
  
         .controls-panel.active {
             display: flex;
+            animation: fadeIn 0.3s;
         }
  
         .control-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
  
         .control-label {
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 10px;
+            font-weight: 700;
             color: #999;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
  
         .control-value {
-            font-size: 11px;
+            font-size: 12px;
             color: #06b6d4;
-            font-weight: 500;
+            font-weight: 700;
         }
  
-        .slider {
-            width: 100%;
-            height: 4px;
-            border-radius: 2px;
-            background: rgba(139, 92, 246, 0.2);
-            outline: none;
-            -webkit-appearance: none;
-        }
- 
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #06b6d4;
-            cursor: pointer;
-            box-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
-        }
- 
-        .style-grid {
+        .button-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px;
         }
  
-        .style-btn {
-            background: rgba(139, 92, 246, 0.1);
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            color: #999;
+        .option-btn {
             padding: 10px 12px;
-            border-radius: 6px;
+            background: rgba(139, 92, 246, 0.08);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: 8px;
+            color: #999;
             font-size: 11px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+            text-transform: capitalize;
         }
  
-        .style-btn:hover {
+        .option-btn:hover {
             border-color: #06b6d4;
             color: #06b6d4;
-            background: rgba(6, 182, 212, 0.1);
+            background: rgba(6, 182, 212, 0.08);
         }
  
-        .style-btn.active {
+        .option-btn.active {
+            background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+ 
+        /* SLIDER */
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+ 
+        .slider {
+            width: 100%;
+            height: 5px;
+            border-radius: 3px;
+            background: rgba(139, 92, 246, 0.15);
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+ 
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
             background: #06b6d4;
-            color: black;
-            border-color: #06b6d4;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.4);
+            transition: all 0.3s;
         }
  
+        .slider::-webkit-slider-thumb:hover {
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.6);
+            transform: scale(1.1);
+        }
+ 
+        .slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #06b6d4;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.4);
+        }
+ 
+        /* BOTÓN GENERAR */
         .generate-btn {
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
             border: none;
+            border-radius: 10px;
             color: white;
             font-weight: 700;
-            font-size: 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
+            font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-top: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+            margin-top: 8px;
         }
  
-        .generate-btn:hover {
+        .generate-btn:hover:not(.loading) {
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(6, 182, 212, 0.3);
+            box-shadow: 0 8px 30px rgba(6, 182, 212, 0.4);
         }
  
-        .generate-btn:active {
+        .generate-btn:active:not(.loading) {
             transform: translateY(0);
         }
  
@@ -228,45 +307,95 @@
             cursor: not-allowed;
         }
  
+        .generate-btn.loading::after {
+            content: '';
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+ 
+        /* MENSAJE DE ESTADO */
+        .status-message {
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-top: 8px;
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+ 
+        .status-message.show {
+            display: block;
+        }
+ 
+        .status-message.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+ 
+        .status-message.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+ 
+        .status-message.info {
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            color: #06b6d4;
+        }
+ 
         /* ════ CANVAS CENTRAL ════ */
         .canvas-center {
             display: flex;
             flex-direction: column;
-            gap: 0;
             background: #0a0a0a;
-            border-right: 1px solid rgba(139, 92, 246, 0.2);
             border-left: 1px solid rgba(139, 92, 246, 0.2);
+            border-right: 1px solid rgba(139, 92, 246, 0.2);
+            overflow: hidden;
         }
  
         .toolbar {
-            background: #1a1a2e;
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(139, 92, 246, 0.2);
-            padding: 12px 20px;
+            padding: 16px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
         }
  
         .toolbar-left {
             display: flex;
-            gap: 10px;
-            align-items: center;
+            gap: 12px;
         }
  
         .toolbar-btn {
-            padding: 8px 12px;
-            background: rgba(139, 92, 246, 0.1);
-            border: 1px solid rgba(139, 92, 246, 0.3);
+            padding: 8px 14px;
+            background: rgba(139, 92, 246, 0.08);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: 8px;
             color: #999;
-            border-radius: 6px;
             font-size: 12px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
  
         .toolbar-btn:hover {
             border-color: #06b6d4;
             color: #06b6d4;
+            background: rgba(6, 182, 212, 0.08);
         }
  
         .canvas-area {
@@ -274,89 +403,122 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 24px;
             overflow: auto;
-            padding: 20px;
-            position: relative;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.5) 0%, rgba(10, 10, 26, 0.5) 100%);
         }
  
         .canvas-display {
+            width: 100%;
+            max-width: 700px;
+            aspect-ratio: 4/3;
             background: rgba(139, 92, 246, 0.05);
             border: 2px dashed rgba(6, 182, 212, 0.3);
-            border-radius: 12px;
-            width: 100%;
-            max-width: 600px;
-            aspect-ratio: 1;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #666;
-            font-size: 13px;
-            text-align: center;
             overflow: hidden;
             position: relative;
+            transition: all 0.3s;
+        }
+ 
+        .canvas-display:hover {
+            border-color: rgba(6, 182, 212, 0.5);
         }
  
         .canvas-display img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            animation: fadeIn 0.5s;
         }
  
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
+        .canvas-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            color: #555;
+            text-align: center;
+            padding: 40px;
+        }
+ 
+        .placeholder-icon {
+            font-size: 64px;
+            animation: pulse 3s ease-in-out infinite;
+        }
+ 
+        .placeholder-text {
+            font-size: 14px;
+            color: #666;
+        }
+ 
+        .spinner {
+            width: 48px;
+            height: 48px;
             border: 3px solid rgba(6, 182, 212, 0.2);
-            border-top: 3px solid #06b6d4;
+            border-top-color: #06b6d4;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
  
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
- 
-        /* ════ SIDEBAR DERECHA ════ */
+        /* ════ SIDEBAR DERECHA - HISTORIAL ════ */
         .sidebar-right {
             background: linear-gradient(180deg, #1a1a2e 0%, #0f0f23 100%);
             border-left: 1px solid rgba(139, 92, 246, 0.2);
             overflow-y: auto;
-            padding: 20px;
+            padding: 24px;
             display: flex;
             flex-direction: column;
             gap: 20px;
+            animation: slideIn 0.5s ease 0.1s backwards;
         }
  
-        .history-header {
-            font-size: 12px;
-            font-weight: 600;
+        .sidebar-header {
+            font-size: 11px;
+            font-weight: 700;
             color: #06b6d4;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
             padding-bottom: 12px;
             border-bottom: 1px solid rgba(139, 92, 246, 0.2);
         }
  
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+ 
         .history-item {
-            background: rgba(139, 92, 246, 0.1);
+            background: rgba(139, 92, 246, 0.08);
             border: 1px solid rgba(139, 92, 246, 0.2);
-            border-radius: 8px;
-            padding: 12px;
+            border-radius: 10px;
+            padding: 14px;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 12px;
+            overflow: hidden;
         }
  
         .history-item:hover {
             border-color: #06b6d4;
-            background: rgba(6, 182, 212, 0.1);
+            background: rgba(6, 182, 212, 0.08);
         }
  
         .history-thumb {
             width: 100%;
-            height: 80px;
+            height: 100px;
             background: rgba(0, 0, 0, 0.3);
-            border-radius: 4px;
-            margin-bottom: 8px;
+            border-radius: 8px;
+            margin-bottom: 10px;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
         }
  
         .history-thumb img {
@@ -365,18 +527,19 @@
             object-fit: cover;
         }
  
-        .history-prompt {
-            color: #999;
+        .history-text {
             font-size: 11px;
-            line-height: 1.3;
+            color: #999;
+            line-height: 1.4;
             margin-bottom: 8px;
         }
  
         .history-time {
-            color: #666;
             font-size: 10px;
+            color: #666;
         }
  
+        /* SCROLLBAR */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -386,15 +549,22 @@
         }
  
         ::-webkit-scrollbar-thumb {
-            background: rgba(6, 182, 212, 0.4);
+            background: rgba(6, 182, 212, 0.3);
             border-radius: 4px;
         }
  
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(6, 182, 212, 0.6);
+            background: rgba(6, 182, 212, 0.5);
         }
  
-        @media (max-width: 1400px) {
+        /* RESPONSIVE */
+        @media (max-width: 1600px) {
+            .studio-container {
+                grid-template-columns: 280px 1fr 300px;
+            }
+        }
+ 
+        @media (max-width: 1200px) {
             .studio-container {
                 grid-template-columns: 250px 1fr;
             }
@@ -403,33 +573,13 @@
             }
         }
  
-        @media (max-width: 900px) {
+        @media (max-width: 768px) {
             .studio-container {
                 grid-template-columns: 1fr;
             }
             .sidebar-left {
                 display: none;
             }
-        }
- 
-        .error-message {
-            color: #ef4444;
-            font-size: 12px;
-            padding: 10px;
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 6px;
-            margin-top: 10px;
-        }
- 
-        .success-message {
-            color: #10b981;
-            font-size: 12px;
-            padding: 10px;
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 6px;
-            margin-top: 10px;
         }
     </style>
 </head>
@@ -438,60 +588,72 @@
         
         <!-- ════ SIDEBAR IZQUIERDA ════ -->
         <div class="sidebar-left">
-            <div class="logo-header">
-                <div class="logo-header-box">✨</div>
-                <span>Merlin AI</span>
+            <div class="logo-section">
+                <div class="logo-icon">✨</div>
+                <div class="logo-text">
+                    <h1>MERLIN AI</h1>
+                    <p>Generador de imágenes</p>
+                </div>
             </div>
  
-            <div class="prompt-section">
-                <label class="prompt-label">Describe tu imagen</label>
-                <textarea id="prompt" class="prompt-input" placeholder="Un dragón dorado volando sobre montañas, estilo Pixar..."></textarea>
+            <div class="prompt-box">
+                <label class="prompt-label">📝 Tu idea (Prompt)</label>
+                <textarea 
+                    id="promptInput" 
+                    class="prompt-textarea" 
+                    placeholder="Describe la imagen que quieres generar. Ejemplo: Un dragón dorado volando sobre montañas nevadas, estilo Pixar, luz épica...">
+                </textarea>
             </div>
  
-            <div class="controls-tabs">
-                <button class="tab-btn active" onclick="switchTab('camera', event)">Cámara</button>
-                <button class="tab-btn" onclick="switchTab('style', event)">Estilo</button>
-                <button class="tab-btn" onclick="switchTab('advanced', event)">Avanzado</button>
+            <div class="tabs-container">
+                <button class="tab-btn active" onclick="switchTab('camera')">📷 Cámara</button>
+                <button class="tab-btn" onclick="switchTab('style')">🎨 Estilo</button>
+                <button class="tab-btn" onclick="switchTab('advanced')">⚙️ Avanzado</button>
             </div>
  
-            <!-- TAB: CAMERA -->
+            <!-- TAB: CÁMARA -->
             <div id="camera" class="controls-panel active">
                 <div class="control-group">
                     <label class="control-label">Ángulo de Cámara</label>
-                    <div class="style-grid">
-                        <button class="style-btn active" onclick="selectCamera('Frontal', event)">Frontal</button>
-                        <button class="style-btn" onclick="selectCamera('Perfil', event)">Perfil</button>
-                        <button class="style-btn" onclick="selectCamera('3/4', event)">3/4</button>
-                        <button class="style-btn" onclick="selectCamera('Aéreo', event)">Aéreo</button>
+                    <div class="button-grid">
+                        <button class="option-btn active" onclick="selectCamera('Frontal')">Frontal</button>
+                        <button class="option-btn" onclick="selectCamera('Perfil')">Perfil</button>
+                        <button class="option-btn" onclick="selectCamera('3/4')">3/4</button>
+                        <button class="option-btn" onclick="selectCamera('Aéreo')">Aéreo</button>
                     </div>
                 </div>
             </div>
  
-            <!-- TAB: STYLE -->
+            <!-- TAB: ESTILO -->
             <div id="style" class="controls-panel">
                 <div class="control-group">
                     <label class="control-label">Estilo Artístico</label>
-                    <div class="style-grid">
-                        <button class="style-btn" onclick="selectStyle('Pixar', event)">Pixar</button>
-                        <button class="style-btn" onclick="selectStyle('Cómic', event)">Cómic</button>
-                        <button class="style-btn" onclick="selectStyle('Foto', event)">Foto</button>
-                        <button class="style-btn" onclick="selectStyle('Acuarela', event)">Acuarela</button>
+                    <div class="button-grid">
+                        <button class="option-btn" onclick="selectStyle('Pixar')">Pixar</button>
+                        <button class="option-btn" onclick="selectStyle('Cómic')">Cómic</button>
+                        <button class="option-btn" onclick="selectStyle('Foto')">Foto Real</button>
+                        <button class="option-btn" onclick="selectStyle('Acuarela')">Acuarela</button>
+                        <button class="option-btn" onclick="selectStyle('Cyberpunk')">Cyberpunk</button>
+                        <button class="option-btn" onclick="selectStyle('Dark')">Dark</button>
                     </div>
                 </div>
             </div>
  
-            <!-- TAB: ADVANCED -->
+            <!-- TAB: AVANZADO -->
             <div id="advanced" class="controls-panel">
                 <div class="control-group">
                     <label class="control-label">Pasos de Generación</label>
-                    <div class="control-value" id="stepsValue">50</div>
-                    <input type="range" min="20" max="100" value="50" class="slider" id="stepsSlider" oninput="document.getElementById('stepsValue').textContent = this.value">
-                </div>
- 
-                <div class="control-group">
-                    <label class="control-label">Guidance Scale</label>
-                    <div class="control-value" id="guidanceValue">7.5</div>
-                    <input type="range" min="0" max="20" step="0.5" value="7.5" class="slider" id="guidanceSlider" oninput="document.getElementById('guidanceValue').textContent = this.value">
+                    <div class="control-value"><span id="stepsVal">30</span> pasos</div>
+                    <div class="slider-container">
+                        <input 
+                            type="range" 
+                            min="20" 
+                            max="50" 
+                            value="30" 
+                            class="slider"
+                            oninput="document.getElementById('stepsVal').textContent = this.value"
+                        >
+                    </div>
                 </div>
             </div>
  
@@ -499,26 +661,26 @@
                 ✨ Generar Imagen
             </button>
  
-            <div id="messageBox"></div>
+            <div id="statusMsg" class="status-message"></div>
         </div>
  
         <!-- ════ CANVAS CENTRAL ════ -->
         <div class="canvas-center">
             <div class="toolbar">
                 <div class="toolbar-left">
-                    <button class="toolbar-btn" onclick="loadMarketplace()">🏪 Marketplace</button>
-                    <button class="toolbar-btn" onclick="toggleHistory()">📜 Historial</button>
+                    <button class="toolbar-btn" onclick="loadMarketplace()">🏪 Prompts</button>
+                    <button class="toolbar-btn" onclick="downloadImage()">⬇️ Descargar</button>
                 </div>
                 <div>
-                    <button class="toolbar-btn" onclick="alert('Opciones en desarrollo')">⚙️ Opciones</button>
+                    <button class="toolbar-btn" onclick="clearCanvas()">🗑️ Limpiar</button>
                 </div>
             </div>
  
             <div class="canvas-area">
                 <div class="canvas-display" id="canvasDisplay">
-                    <div style="text-align: center; color: #666;">
-                        <div style="font-size: 48px; margin-bottom: 10px;">✨</div>
-                        <div>Tu imagen aparecerá aquí</div>
+                    <div class="canvas-placeholder">
+                        <div class="placeholder-icon">✨</div>
+                        <div class="placeholder-text">Escribe tu idea y haz clic en<br><strong>Generar Imagen</strong></div>
                     </div>
                 </div>
             </div>
@@ -526,74 +688,77 @@
  
         <!-- ════ SIDEBAR DERECHA ════ -->
         <div class="sidebar-right">
-            <div class="history-header">Historial</div>
-            
-            <div class="history-item">
-                <div class="history-thumb" style="background: linear-gradient(135deg, #06b6d4, #8b5cf6); display: flex; align-items: center; justify-content: center; color: white; font-size: 30px;">✨</div>
-                <div class="history-prompt">Listo para generar tu primera imagen</div>
-                <div class="history-time">Ahora</div>
+            <div class="sidebar-header">📜 Historial</div>
+            <div class="history-list" id="historyList">
+                <div class="history-item">
+                    <div class="history-thumb">✨</div>
+                    <div class="history-text"><strong>Listo para generar</strong></div>
+                    <div class="history-time">Ahora</div>
+                </div>
             </div>
  
-            <div id="marketplaceList" style="display: none;">
-                <div class="history-header">Prompts Disponibles</div>
-                <div id="marketplacePlaceholder"></div>
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(139, 92, 246, 0.2);">
+                <div class="sidebar-header">🛍️ Marketplace</div>
+                <div class="history-list" id="marketplaceList"></div>
             </div>
         </div>
     </div>
  
     <script>
-        // STATE
-        let state = {
+        // ════ STATE ════
+        const state = {
             selectedCamera: 'Frontal',
             selectedStyle: 'Ninguno',
-            currentImage: null,
-            generating: false
+            currentImageUrl: null,
+            isGenerating: false,
+            history: []
         };
  
-        // SWITCH TABS
-        function switchTab(tabName, event) {
-            event.target.parentElement.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
+        // ════ SWITCH TABS ════
+        function switchTab(tabName) {
             document.querySelectorAll('.controls-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
             document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
         }
  
-        // SELECT CAMERA
-        function selectCamera(camera, event) {
-            event.target.parentElement.querySelectorAll('.style-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+        // ════ SELECT CAMERA ════
+        function selectCamera(camera) {
             state.selectedCamera = camera;
-        }
- 
-        // SELECT STYLE
-        function selectStyle(style, event) {
-            event.target.parentElement.querySelectorAll('.style-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('#camera .option-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
-            state.selectedStyle = style;
         }
  
-        // GENERATE IMAGE
+        // ════ SELECT STYLE ════
+        function selectStyle(style) {
+            state.selectedStyle = style;
+            document.querySelectorAll('#style .option-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+ 
+        // ════ GENERAR IMAGEN ════
         async function generateImage() {
-            const prompt = document.getElementById('prompt').value;
+            const prompt = document.getElementById('promptInput').value.trim();
             const btn = document.getElementById('generateBtn');
             const canvas = document.getElementById('canvasDisplay');
-            const messageBox = document.getElementById('messageBox');
+            const statusMsg = document.getElementById('statusMsg');
  
             if (!prompt) {
-                showMessage('Escribe un prompt para generar', 'error');
+                showStatus('Por favor escribe un prompt para generar', 'error');
                 return;
             }
  
-            if (state.generating) return;
+            if (state.isGenerating) return;
  
-            state.generating = true;
+            state.isGenerating = true;
             btn.classList.add('loading');
-            btn.textContent = '⏳ Generando...';
-            canvas.innerHTML = '<div class="loading-spinner"></div>';
-            messageBox.innerHTML = '';
+            canvas.innerHTML = '<div class="spinner"></div>';
+            statusMsg.classList.remove('show');
  
             try {
+                showStatus('⏳ Generando imagen con Fal.ai FLUX Dev...', 'info');
+ 
                 const response = await fetch('/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -607,68 +772,120 @@
                 const data = await response.json();
  
                 if (data.success) {
-                    state.currentImage = data.imageUrl;
+                    state.currentImageUrl = data.imageUrl;
                     canvas.innerHTML = `<img src="${data.imageUrl}" alt="Generada">`;
-                    showMessage('✨ Imagen generada con éxito', 'success');
+                    showStatus('✅ Imagen generada con éxito!', 'success');
+                    addToHistory(prompt);
+                    loadMarketplace();
                 } else {
-                    showMessage('❌ Error: ' + data.error, 'error');
-                    canvas.innerHTML = '<div style="text-align: center; color: #666;"><div style="font-size: 48px; margin-bottom: 10px;">❌</div><div>Error al generar</div></div>';
+                    throw new Error(data.error || 'Error al generar');
                 }
             } catch (error) {
-                showMessage('❌ Error de conexión: ' + error.message, 'error');
-                canvas.innerHTML = '<div style="text-align: center; color: #666;"><div style="font-size: 48px; margin-bottom: 10px;">❌</div><div>Error de conexión</div></div>';
+                canvas.innerHTML = `
+                    <div class="canvas-placeholder">
+                        <div class="placeholder-icon">❌</div>
+                        <div class="placeholder-text">${error.message}</div>
+                    </div>
+                `;
+                showStatus(`❌ Error: ${error.message}`, 'error');
             } finally {
-                state.generating = false;
+                state.isGenerating = false;
                 btn.classList.remove('loading');
-                btn.textContent = '✨ Generar Imagen';
             }
         }
  
-        // LOAD MARKETPLACE
+        // ════ LOAD MARKETPLACE ════
         async function loadMarketplace() {
-            const list = document.getElementById('marketplaceList');
-            const placeholder = document.getElementById('marketplacePlaceholder');
+            try {
+                const response = await fetch('/marketplace/prompts');
+                const data = await response.json();
  
-            if (list.style.display === 'none') {
-                try {
-                    const response = await fetch('/marketplace/prompts');
-                    const data = await response.json();
- 
-                    if (data.success && data.prompts.length > 0) {
-                        placeholder.innerHTML = data.prompts.map(p => `
-                            <div class="history-item">
-                                <div style="text-align: center; font-size: 30px; margin-bottom: 8px;">${p.image}</div>
-                                <div class="history-prompt"><strong>${p.title}</strong></div>
-                                <div class="history-time">$${p.price} - por ${p.author}</div>
-                            </div>
-                        `).join('');
-                    }
-                    list.style.display = 'block';
-                } catch (error) {
-                    alert('Error cargando marketplace: ' + error.message);
+                if (data.success && data.prompts.length > 0) {
+                    const html = data.prompts.map(p => `
+                        <div class="history-item" onclick="usePrompt('${p.prompt.replace(/'/g, "\\'")}')">
+                            <div class="history-thumb">${p.image}</div>
+                            <div class="history-text"><strong>${p.title}</strong></div>
+                            <div class="history-time">$${p.price} • ${p.author}</div>
+                        </div>
+                    `).join('');
+                    document.getElementById('marketplaceList').innerHTML = html;
                 }
-            } else {
-                list.style.display = 'none';
+            } catch (error) {
+                console.error('Error cargando marketplace:', error);
             }
         }
  
-        // TOGGLE HISTORY
-        function toggleHistory() {
-            alert('Historial en desarrollo - guardaremos tus últimas generaciones');
+        // ════ USE PROMPT ════
+        function usePrompt(prompt) {
+            document.getElementById('promptInput').value = prompt;
+            generateImage();
         }
  
-        // SHOW MESSAGE
-        function showMessage(text, type) {
-            const messageBox = document.getElementById('messageBox');
-            messageBox.innerHTML = `<div class="${type}-message">${text}</div>`;
-            setTimeout(() => {
-                messageBox.innerHTML = '';
-            }, 5000);
+        // ════ ADD TO HISTORY ════
+        function addToHistory(prompt) {
+            const item = {
+                prompt: prompt,
+                image: state.currentImageUrl,
+                time: new Date().toLocaleTimeString('es-ES')
+            };
+            state.history.unshift(item);
+ 
+            const historyList = document.getElementById('historyList');
+            const html = `
+                <div class="history-item">
+                    <div class="history-thumb"><img src="${item.image}" alt="Generada"></div>
+                    <div class="history-text">${item.prompt.substring(0, 50)}...</div>
+                    <div class="history-time">${item.time}</div>
+                </div>
+            `;
+            historyList.insertAdjacentHTML('afterbegin', html);
         }
  
-        // INITIAL
-        console.log('✅ Merlin AI Frontend cargado');
-        console.log('📍 Conectado a servidor:', window.location.origin);
+        // ════ DOWNLOAD IMAGE ════
+        function downloadImage() {
+            if (!state.currentImageUrl) {
+                showStatus('No hay imagen para descargar', 'error');
+                return;
+            }
+ 
+            const link = document.createElement('a');
+            link.href = state.currentImageUrl;
+            link.download = `merlin-ai-${Date.now()}.png`;
+            link.click();
+            showStatus('✅ Imagen descargada!', 'success');
+        }
+ 
+        // ════ CLEAR CANVAS ════
+        function clearCanvas() {
+            const canvas = document.getElementById('canvasDisplay');
+            state.currentImageUrl = null;
+            canvas.innerHTML = `
+                <div class="canvas-placeholder">
+                    <div class="placeholder-icon">✨</div>
+                    <div class="placeholder-text">Canvas limpio<br>Listo para nueva generación</div>
+                </div>
+            `;
+            showStatus('Canvas limpio', 'info');
+        }
+ 
+        // ════ SHOW STATUS ════
+        function showStatus(text, type) {
+            const msg = document.getElementById('statusMsg');
+            msg.textContent = text;
+            msg.className = `status-message show ${type}`;
+            
+            if (type !== 'error') {
+                setTimeout(() => msg.classList.remove('show'), 5000);
+            }
+        }
+ 
+        // ════ INIT ════
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('✅ Merlin AI Frontend - Listo');
+            console.log('📍 Backend:', window.location.origin);
+            console.log('🧙‍♂️ Conectado a /generate endpoint');
+            loadMarketplace();
+        });
     </script>
 </body>
 </html>
