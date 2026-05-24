@@ -3,252 +3,622 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Merlin AI — Generador de Imágenes IA Gratis en Español</title>
-    <meta name="description" content="Merlin AI es el generador de imágenes IA gratuito en español. Crea arte, stickers para WhatsApp, exporta para Instagram, TikTok y LinkedIn. Sin suscripción.">
-    <meta name="keywords" content="generador imágenes IA gratis, crear imágenes IA español, generador stickers WhatsApp IA, herramienta imágenes IA español, crear arte IA gratis">
-    <meta property="og:title" content="Merlin AI — Generador de Imágenes IA Gratis">
-    <meta property="og:description" content="La suite de imagen IA para creadores. Genera, edita, exporta y crea stickers. Gratis.">
-    <meta property="og:type" content="website">
-    <meta property="og:locale" content="es_ES">
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "Merlin AI",
-        "description": "Generador de imágenes con inteligencia artificial gratuito en español.",
-        "applicationCategory": "DesignApplication",
-        "operatingSystem": "Web",
-        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
-        "featureList": [
-            "Generación de imágenes con FLUX",
-            "Inpainting: editar partes de la imagen",
-            "Reference Board: combinar estilos",
-            "Upscayl 4x: alta resolución",
-            "Export para Instagram TikTok LinkedIn",
-            "Creador de stickers para WhatsApp",
-            "5 moods de estilo predefinidos",
-            "Mejora de prompts con Gemini AI"
-        ]
-    }
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Merlin AI - 9 Features Premium</title>
     <style>
-        * { font-family: 'Poppins', sans-serif; }
-        h1, h2, h3, .orbitron { font-family: 'Orbitron', sans-serif; }
-        .gradient-text {
-            background: linear-gradient(to right, #06b6d4, #a855f7);
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0a0a1a 100%);
+            color: #e8e8e8;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
+        @keyframes glow { 0%, 100% { box-shadow: 0 0 20px rgba(6, 182, 212, 0.3); } 50% { box-shadow: 0 0 40px rgba(6, 182, 212, 0.6); } }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+
+        /* HEADER */
+        header {
+            padding: 30px 0;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: rgba(10, 10, 26, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            animation: fadeIn 0.6s ease;
+        }
+
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+        }
+
+        .logo h1 { font-size: 24px; color: #06b6d4; font-weight: 700; letter-spacing: 1px; }
+
+        .header-right { display: flex; align-items: center; gap: 20px; }
+        .sound-toggle {
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #06b6d4;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .sound-toggle:hover { border-color: #06b6d4; box-shadow: 0 0 20px rgba(6, 182, 212, 0.3); }
+
+        .cta-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+        }
+
+        .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(6, 182, 212, 0.5); }
+
+        /* HERO SECTION */
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            margin: 100px 0 80px 0;
+            animation: fadeIn 0.8s ease 0.2s backwards;
+        }
+
+        .hero-text h2 {
+            font-size: 56px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #06b6d4, #8b5cf6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+            line-height: 1.1;
         }
-        .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 0 30px rgba(168,85,247,0.3); }
-        .glow { box-shadow: 0 0 40px rgba(6,182,212,0.2); }
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50%       { transform: translateY(-10px); }
-        }
-        .float { animation: float 3s ease-in-out infinite; }
-        details summary { cursor: pointer; }
-        details[open] summary { color: #06b6d4; }
 
-        /* ✅ CORREGIDO: sin background negro, respeta la transparencia del PNG */
-        .merlin-img {
-            border-radius: 12px;
-            display: block;
+        .hero-text p {
+            font-size: 18px;
+            color: #bbb;
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+
+        .hero-features {
+            list-style: none;
+            margin: 30px 0;
+        }
+
+        .hero-features li {
+            padding: 10px 0;
+            font-size: 16px;
+            color: #ccc;
+        }
+
+        .hero-features li:before {
+            content: "✓ ";
+            color: #06b6d4;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .hero-visual {
+            font-size: 120px;
+            text-align: center;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* FEATURES GRID */
+        .features-section {
+            margin: 120px 0;
+            animation: fadeIn 1s ease 0.4s backwards;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header h2 {
+            font-size: 48px;
+            color: #06b6d4;
+            margin-bottom: 15px;
+        }
+
+        .section-header p {
+            font-size: 18px;
+            color: #999;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: rgba(139, 92, 246, 0.08);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 16px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            animation: fadeIn 0.6s ease backwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card:nth-child(1) { animation-delay: 0.1s; }
+        .feature-card:nth-child(2) { animation-delay: 0.2s; }
+        .feature-card:nth-child(3) { animation-delay: 0.3s; }
+        .feature-card:nth-child(4) { animation-delay: 0.4s; }
+        .feature-card:nth-child(5) { animation-delay: 0.5s; }
+        .feature-card:nth-child(6) { animation-delay: 0.6s; }
+        .feature-card:nth-child(7) { animation-delay: 0.7s; }
+        .feature-card:nth-child(8) { animation-delay: 0.8s; }
+        .feature-card:nth-child(9) { animation-delay: 0.9s; }
+
+        .feature-card:hover {
+            border-color: #06b6d4;
+            background: rgba(6, 182, 212, 0.1);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(6, 182, 212, 0.2);
+        }
+
+        .feature-card:hover::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(6, 182, 212, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .feature-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .feature-card h3 {
+            font-size: 22px;
+            color: #06b6d4;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: #999;
+            line-height: 1.6;
+        }
+
+        /* PRICING SECTION */
+        .pricing-section {
+            margin: 120px 0;
+            text-align: center;
+            animation: fadeIn 1s ease 0.6s backwards;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .pricing-card {
+            background: rgba(139, 92, 246, 0.08);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 16px;
+            padding: 40px 30px;
+            transition: all 0.3s;
+        }
+
+        .pricing-card.featured {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+            border-color: #06b6d4;
+            transform: scale(1.05);
+        }
+
+        .pricing-card:hover {
+            border-color: #06b6d4;
+            transform: translateY(-10px);
+        }
+
+        .pricing-card h3 {
+            font-size: 24px;
+            color: #06b6d4;
+            margin-bottom: 15px;
+        }
+
+        .pricing-card .price {
+            font-size: 48px;
+            font-weight: 900;
+            color: #10b981;
+            margin-bottom: 10px;
+        }
+
+        .pricing-card .period {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .pricing-features {
+            list-style: none;
+            text-align: left;
+            margin: 30px 0;
+        }
+
+        .pricing-features li {
+            padding: 10px 0;
+            font-size: 14px;
+            color: #ccc;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .pricing-features li:before {
+            content: "✓ ";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .pricing-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .pricing-btn:hover { transform: scale(1.02); }
+
+        /* CTA FINAL */
+        .final-cta {
+            margin: 120px 0;
+            text-align: center;
+            padding: 60px;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 16px;
+            animation: fadeIn 1s ease 0.8s backwards;
+        }
+
+        .final-cta h2 {
+            font-size: 42px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .final-cta p {
+            font-size: 18px;
+            color: #bbb;
+            margin-bottom: 30px;
+        }
+
+        .final-cta-btn {
+            padding: 18px 50px;
+            font-size: 18px;
+            background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 30px rgba(6, 182, 212, 0.3);
+        }
+
+        .final-cta-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(6, 182, 212, 0.5);
+        }
+
+        /* FOOTER */
+        footer {
+            border-top: 1px solid rgba(139, 92, 246, 0.2);
+            padding: 40px 0;
+            text-align: center;
+            color: #666;
+            margin-top: 100px;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .hero { grid-template-columns: 1fr; gap: 40px; }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+            .hero-text h2 { font-size: 42px; }
+        }
+
+        @media (max-width: 768px) {
+            .hero-text h2 { font-size: 32px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .pricing-grid { grid-template-columns: 1fr; }
+            .section-header h2 { font-size: 32px; }
+            header { flex-direction: column; gap: 20px; }
         }
     </style>
 </head>
-<body class="bg-black text-white">
-
-    <nav class="fixed top-0 w-full bg-black bg-opacity-90 backdrop-blur border-b border-gray-800 z-50">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <img src="merlin-dibujo.webp" class="merlin-img" style="width:44px;height:44px;object-fit:contain;">
-                <span class="orbitron font-bold text-xl gradient-text">Merlin AI</span>
+<body>
+    <!-- HEADER -->
+    <header>
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div class="logo">
+                <div class="logo-icon">✨</div>
+                <div>
+                    <h1>MERLIN AI</h1>
+                </div>
             </div>
-            <a href="index.html"
-               class="bg-cyan-500 hover:bg-cyan-400 text-black font-bold py-2 px-6 rounded-full orbitron text-sm transition-all">
-                ✨ Abrir App
-            </a>
+            <div class="header-right">
+                <button class="sound-toggle" id="soundToggle" onclick="toggleSound()">🔊</button>
+                <button class="cta-btn" onclick="goToApp()">🚀 Abre Merlin AI</button>
+            </div>
         </div>
-    </nav>
+    </header>
 
-    <section class="min-h-screen flex items-center justify-center pt-20 pb-16 px-6">
-        <div class="text-center max-w-4xl mx-auto">
-            <div class="float mb-8" style="display:inline-block;">
-                <img src="merlin-dibujo.webp" class="merlin-img" style="width:200px;height:200px;object-fit:contain;">
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;">
+            <div class="hero-text">
+                <h2>La magia de crear imágenes espectaculares</h2>
+                <p>Merlin AI combina en un solo lugar lo que normalmente necesitarías pagar por separado en varias plataformas.</p>
+                
+                <ul class="hero-features">
+                    <li>Marketplace con 100+ prompts premium</li>
+                    <li>Edición local con Inpainting visual</li>
+                    <li>Exporta a Instagram, TikTok, LinkedIn, X</li>
+                    <li>Stickers automáticos para WhatsApp</li>
+                    <li>Música mágica y efectos de sonido</li>
+                    <li>Historial y prompts favoritos</li>
+                </ul>
+
+                <button class="cta-btn" onclick="goToApp()" style="font-size: 16px; padding: 14px 40px;">
+                    Comienza Ahora → 🎯
+                </button>
             </div>
-            <h1 class="text-5xl md:text-7xl font-black mb-6 leading-tight orbitron">
-                <span class="gradient-text">Merlin AI</span>
-            </h1>
-            <p class="text-2xl md:text-3xl font-bold mb-4 text-white">
-                El generador de imágenes IA gratuito en español
-            </p>
-            <p class="text-lg text-gray-400 mb-8 max-w-2xl mx-auto">
-                Una suite completa para creadores. Genera arte con IA, edita partes de tu imagen,
-                exporta para cada red social y crea stickers para WhatsApp — todo desde el navegador, todo gratis.
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-                <a href="index.html"
-                   class="bg-gradient-to-r from-cyan-500 to-purple-600 hover:opacity-90 text-white font-bold py-4 px-10 rounded-full orbitron text-lg transition-all glow">
-                    ✨ Generar ahora — Gratis
-                </a>
-                <a href="#features"
-                   class="border border-gray-600 hover:border-cyan-500 text-white font-bold py-4 px-10 rounded-full orbitron text-lg transition-all">
-                    Ver todo lo que hace →
-                </a>
-            </div>
-            <div class="flex flex-wrap justify-center gap-3 text-sm">
-                <span class="bg-gray-900 border border-gray-700 px-4 py-2 rounded-full">✅ Sin registro</span>
-                <span class="bg-gray-900 border border-gray-700 px-4 py-2 rounded-full">✅ Sin suscripción</span>
-                <span class="bg-gray-900 border border-gray-700 px-4 py-2 rounded-full">✅ En español</span>
-                <span class="bg-gray-900 border border-gray-700 px-4 py-2 rounded-full">✅ Export para redes</span>
-                <span class="bg-gray-900 border border-gray-700 px-4 py-2 rounded-full">✅ Stickers WhatsApp</span>
-            </div>
+
+            <div class="hero-visual">✨🧙‍♂️✨</div>
         </div>
     </section>
 
-    <section id="features" class="py-16 px-6 bg-gray-950">
-        <div class="container mx-auto max-w-5xl text-center">
-            <h2 class="text-3xl font-bold mb-4 orbitron">
-                Lo que <span class="gradient-text">ninguna otra herramienta</span> tiene junto
-            </h2>
-            <p class="text-gray-400 mb-12 max-w-2xl mx-auto">
-                Merlin AI combina en un solo lugar lo que normalmente necesitarías pagar por separado en varias plataformas.
-            </p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-                <article class="bg-gray-900 p-6 rounded-xl border border-cyan-900 card-hover">
-                    <div class="text-3xl mb-3">📱</div>
-                    <h3 class="font-bold text-lg mb-2 orbitron text-cyan-400">Export para redes</h3>
-                    <p class="text-gray-400 text-sm">Instagram 1:1, TikTok 9:16, LinkedIn y Twitter en el formato exacto de cada plataforma. Un click y listo para publicar.</p>
-                </article>
-                <article class="bg-gray-900 p-6 rounded-xl border border-purple-900 card-hover">
-                    <div class="text-3xl mb-3">💬</div>
-                    <h3 class="font-bold text-lg mb-2 orbitron text-purple-400">Stickers WhatsApp</h3>
-                    <p class="text-gray-400 text-sm">Genera cualquier imagen y conviértela en sticker para WhatsApp automáticamente. Fondo transparente, formato WebP 512x512.</p>
-                </article>
-                <article class="bg-gray-900 p-6 rounded-xl border border-pink-900 card-hover">
-                    <div class="text-3xl mb-3">🎨</div>
-                    <h3 class="font-bold text-lg mb-2 orbitron text-pink-400">Inpainting visual</h3>
-                    <p class="text-gray-400 text-sm">Pinta con el ratón la zona que quieres cambiar. La IA regenera solo esa parte manteniendo el resto intacto.</p>
-                </article>
-                <article class="bg-gray-900 p-6 rounded-xl border border-yellow-900 card-hover">
-                    <div class="text-3xl mb-3">🖼️</div>
-                    <h3 class="font-bold text-lg mb-2 orbitron text-yellow-400">Reference Board</h3>
-                    <p class="text-gray-400 text-sm">Sube hasta 5 imágenes de referencia. Gemini Vision analiza el estilo de todas y genera un prompt que las fusiona.</p>
-                </article>
-                <article class="bg-gray-900 p-6 rounded-xl border border-green-900 card-hover">
-                    <div class="text-3xl mb-3">🔼</div>
-                    <h3 class="font-bold text-lg mb-2 orbitron text-green-400">Upscayl 4x HD</h3>
-                    <p class="text-gray-400 text-sm">Escala cualquier imagen a 4 veces su resolución original. De 512px a 2048px sin perder detalle.</p>
-                </article>
-                <article class="bg-gray-900 p-6 rounded-xl border border-blue-900 card-hover">
-                    <div class="text-3xl mb-3">🪄</div>
-                    <h3 class="font-bold text-lg mb-2 orbitron text-blue-400">Prompt Enhancer</h3>
-                    <p class="text-gray-400 text-sm">Pulsa la varita mágica y Merlin enriquece tu prompt con palabras clave de calidad profesional automáticamente.</p>
-                </article>
-                <article class="bg-gray-900 p-6 rounded-xl border border-orange-900 card-hover">
-                    <div class="text-3xl mb-3">🎬</div>
-                    <h3 class="font-bold text-lg mb-2 orbitron text-orange-400">5 Moods de estilo</h3>
-                    <p class="text-gray-400 text-sm">Cómic, Cyberpunk, Acuarela, Dark Fantasy y Neon. Un click y Merlin inyecta el estilo en tu imagen automáticamente.</p>
-                </article>
-                <article class="bg-gray-900 p-6 rounded-xl border border-red-900 card-hover">
-                    <div class="text-3xl mb-3">🔄</div>
-                    <h3 class="font-bold text-lg mb-2 orbitron text-red-400">Batch de 4 variantes</h3>
-                    <p class="text-gray-400 text-sm">Genera 4 versiones simultáneas del mismo prompt. Elige la mejor, descarta las demás.</p>
-                </article>
-                <article class="bg-gray-900 p-6 rounded-xl border border-gray-700 card-hover">
-                    <div class="text-3xl mb-3">📐</div>
-                    <h3 class="font-bold text-lg mb-2 orbitron text-gray-300">Smart Aspect Ratio</h3>
-                    <p class="text-gray-400 text-sm">Elige el formato antes de generar: cuadrado, vertical o horizontal. La IA genera directamente en el tamaño correcto.</p>
-                </article>
+    <!-- 9 FEATURES SECTION -->
+    <section class="features-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>9 Features Premium Integrados</h2>
+                <p>Todo lo que necesitas en una sola plataforma</p>
             </div>
-        </div>
-    </section>
 
-    <section class="py-16 px-6">
-        <div class="container mx-auto max-w-4xl">
-            <h2 class="text-3xl font-bold text-center mb-12 orbitron">
-                Tres pasos. <span class="gradient-text">Resultado profesional.</span>
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                <div>
-                    <div class="text-6xl mb-4">✍️</div>
-                    <div class="text-cyan-400 font-bold orbitron mb-2 text-lg">01. Describe</div>
-                    <p class="text-gray-400 text-sm">Escribe tu idea en español. Merlin usa Gemini para mejorar automáticamente tu prompt antes de generar.</p>
+            <div class="features-grid">
+                <!-- 1 -->
+                <div class="feature-card" onclick="playSound('click')">
+                    <div class="feature-icon">📸</div>
+                    <h3>Export para Redes</h3>
+                    <p>Instagram 1080x1080, TikTok 1080x1920, LinkedIn 1200x627, X 1200x675. Un click y listo.</p>
                 </div>
-                <div>
-                    <div class="text-6xl mb-4">⚡</div>
-                    <div class="text-purple-400 font-bold orbitron mb-2 text-lg">02. Genera</div>
-                    <p class="text-gray-400 text-sm">FLUX generates tu imagen en segundos. Elige estilo, formato y genera hasta 4 variantes a la vez.</p>
+
+                <!-- 2 -->
+                <div class="feature-card" onclick="playSound('click')">
+                    <div class="feature-icon">✏️</div>
+                    <h3>Inpainting Visual</h3>
+                    <p>Pinta con el ratón la zona que quieres cambiar. La IA regenera solo ese trozo manteniendo el resto.</p>
                 </div>
-                <div>
-                    <div class="text-6xl mb-4">🚀</div>
-                    <div class="text-pink-400 font-bold orbitron mb-2 text-lg">03. Exporta</div>
-                    <p class="text-gray-400 text-sm">Descarga en el formato exacto para cada red social, comparte directamente o convierte en sticker.</p>
+
+                <!-- 3 -->
+                <div class="feature-card" onclick="playSound('click')">
+                    <div class="feature-icon">💬</div>
+                    <h3>Stickers WhatsApp</h3>
+                    <p>Genera cualquier imagen y conviértela en sticker para WhatsApp automáticamente. Fondo transparente WebP 512x512.</p>
+                </div>
+
+                <!-- 4 -->
+                <div class="feature-card" onclick="playSound('click')">
+                    <div class="feature-icon">🖼️</div>
+                    <h3>Reference Board</h3>
+                    <p>Sube 5 imágenes de referencia. Gemini Vision analiza el estilo de todas y genera un prompt que los fusiona.</p>
+                </div>
+
+                <!-- 5 -->
+                <div class="feature-card" onclick="playSound('click')">
+                    <div class="feature-icon">⬆️</div>
+                    <h3>Upscale 4x HD</h3>
+                    <p>Escala cualquier imagen a 4 veces su resolución original. De 512px a 2048px sin perder detalle.</p>
+                </div>
+
+                <!-- 6 -->
+                <div class="feature-card" onclick="playSound('click')">
+                    <div class="feature-icon">✨</div>
+                    <h3>Prompt Enhancer</h3>
+                    <p>Pulsa la varita mágica y Merlin expande tu prompt con palabras clave de calidad profesional automáticamente.</p>
+                </div>
+
+                <!-- 7 -->
+                <div class="feature-card" onclick="playSound('click')">
+                    <div class="feature-icon">🎨</div>
+                    <h3>5 Modos de Estilo</h3>
+                    <p>Comic, Cyberpunk, Acuarela, Dark Fantasy y Neon. Un click y Merlin inyecta el estilo en tu imagen.</p>
+                </div>
+
+                <!-- 8 -->
+                <div class="feature-card" onclick="playSound('click')">
+                    <div class="feature-icon">🎬</div>
+                    <h3>Batch de 4 Variantes</h3>
+                    <p>Genera 4 versiones distintas del mismo prompt. Elige la mejor, descárgatelas todas en un ZIP.</p>
+                </div>
+
+                <!-- 9 -->
+                <div class="feature-card" onclick="playSound('click')">
+                    <div class="feature-icon">📐</div>
+                    <h3>Smart Aspect Ratio</h3>
+                    <p>Elige el formato antes de generar: cuadrado, vertical u horizontal. La IA genera directamente en el tamaño correcto.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="py-16 px-6 bg-gray-950">
-        <div class="container mx-auto max-w-3xl">
-            <h2 class="text-3xl font-bold text-center mb-12 orbitron">
-                Preguntas <span class="gradient-text">frecuentes</span>
-            </h2>
-            <div class="space-y-4">
-                <details class="bg-gray-900 p-6 rounded-xl border border-gray-800">
-                    <summary class="font-bold text-lg">¿Es realmente gratis Merlin AI?</summary>
-                    <p class="text-gray-400 mt-3 text-sm">Sí. No necesitas tarjeta de crédito ni suscripción mensual para generar imágenes de calidad profesional.</p>
-                </details>
-                <details class="bg-gray-900 p-6 rounded-xl border border-gray-800">
-                    <summary class="font-bold text-lg">¿Qué modelo de IA usa Merlin AI?</summary>
-                    <p class="text-gray-400 mt-3 text-sm">Merlin AI usa FLUX Dev para generación de imágenes, Gemini 2.0 Flash para mejorar prompts y Gemini Vision para analizar referencias visuales.</p>
-                </details>
-                <details class="bg-gray-900 p-6 rounded-xl border border-gray-800">
-                    <summary class="font-bold text-lg">¿Puedo crear stickers de WhatsApp con IA?</summary>
-                    <p class="text-gray-400 mt-3 text-sm">Sí. Merlin AI genera imágenes con fondo transparente en formato WebP 512x512, el formato oficial de WhatsApp para stickers personalizados.</p>
-                </details>
-                <details class="bg-gray-900 p-6 rounded-xl border border-gray-800">
-                    <summary class="font-bold text-lg">¿Puedo usar las imágenes para redes sociales?</summary>
-                    <p class="text-gray-400 mt-3 text-sm">Sí. Merlin AI exporta en el formato exacto para Instagram (1080x1080), TikTok y Reels (1080x1920), LinkedIn (1200x627) y Twitter/X (1200x675).</p>
-                </details>
-                <details class="bg-gray-900 p-6 rounded-xl border border-gray-800">
-                    <summary class="font-bold text-lg">¿Qué es el Inpainting?</summary>
-                    <p class="text-gray-400 mt-3 text-sm">El inpainting te permite pintar con el ratón la zona de una imagen que quieres cambiar. La IA regenera solo esa parte manteniendo el resto exactamente igual.</p>
-                </details>
-                <details class="bg-gray-900 p-6 rounded-xl border border-gray-800">
-                    <summary class="font-bold text-lg">¿Qué es el Reference Board?</summary>
-                    <p class="text-gray-400 mt-3 text-sm">Subes hasta 5 imágenes de referencia, Gemini Vision analiza el estilo de todas ellas y genera automáticamente un prompt que combines la esencia de todas en una sola imagen.</p>
-                </details>
+    <!-- PRICING SECTION -->
+    <section class="pricing-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Planes Simples y Claros</h2>
+                <p>Elige lo que mejor se adapta a ti</p>
+            </div>
+
+            <div class="pricing-grid">
+                <!-- FREEMIUM -->
+                <div class="pricing-card">
+                    <h3>Freemium</h3>
+                    <div class="price">$0</div>
+                    <div class="period">Para siempre</div>
+                    <ul class="pricing-features">
+                        <li>5 generaciones/mes</li>
+                        <li>Acceso marketplace</li>
+                        <li>Sin descargas HD</li>
+                        <li>Historial 7 días</li>
+                    </ul>
+                    <button class="pricing-btn" onclick="goToApp()">Empezar Gratis</button>
+                </div>
+
+                <!-- MONTHLY (FEATURED) -->
+                <div class="pricing-card featured">
+                    <h3>Monthly Pro</h3>
+                    <div class="price">$5</div>
+                    <div class="period">/mes</div>
+                    <ul class="pricing-features">
+                        <li>Ilimitadas generaciones</li>
+                        <li>Acceso prompts premium</li>
+                        <li>Descargas 4K</li>
+                        <li>Historial ilimitado</li>
+                        <li>Soporte prioritario</li>
+                        <li>Batch de 4 variantes</li>
+                    </ul>
+                    <button class="pricing-btn" onclick="goToApp()">Suscribirse Ahora</button>
+                </div>
+
+                <!-- ANNUAL -->
+                <div class="pricing-card">
+                    <h3>Annual Pro</h3>
+                    <div class="price">$45</div>
+                    <div class="period">/año (ahorro 25%)</div>
+                    <ul class="pricing-features">
+                        <li>Todo de Monthly</li>
+                        <li>Acceso creadores beta</li>
+                        <li>Plugin exclusivo</li>
+                        <li>Descuento 20% marketplace</li>
+                        <li>Consulta con expertos</li>
+                    </ul>
+                    <button class="pricing-btn" onclick="goToApp()">Plan Anual</button>
+                </div>
             </div>
         </div>
     </section>
 
-    <section class="py-20 px-6">
-        <div class="container mx-auto max-w-2xl text-center">
-            <div class="float mb-6" style="display:inline-block;">
-                <img src="merlin-dibujo.webp" class="merlin-img" style="width:130px;height:130px;object-fit:contain;">
-            </div>
-            <h2 class="text-4xl font-black mb-4 orbitron">
-                Empieza a crear <span class="gradient-text">ahora</span>
-            </h2>
-            <p class="text-gray-400 mb-8">
-                Sin registro. Sin suscripción. Sin límites artificiales.<br>
-                Solo tú, tu imaginación y la magia de la IA.
-            </p>
-            <a href="index.html"
-               class="inline-block bg-gradient-to-r from-cyan-500 to-purple-600 hover:opacity-90 text-white font-bold py-5 px-12 rounded-full orbitron text-xl transition-all glow">
-                ✨ Abrir Merlin AI — Gratis
-            </a>
+    <!-- FINAL CTA -->
+    <section class="final-cta">
+        <div class="container">
+            <h2>¿Listo para crear magia?</h2>
+            <p>Merlin AI está online. 100+ prompts, marketplace, inpainting, music y mucho más.</p>
+            <button class="final-cta-btn" onclick="goToApp()">🚀 Abre Merlin AI Ahora</button>
         </div>
     </section>
 
-    <footer class="py-8 px-6 border-t border-gray-900 text-center text-gray-600 text-sm">
-        <p>🧙‍♂️ Merlin AI — Generador de imágenes IA gratuito en español</p>
-        <p class="mt-2">Construido con FLUX, Gemini AI y mucha magia ✨</p>
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <p>Merlin AI © 2026 - La magia de las imágenes</p>
+            <p style="margin-top: 10px; font-size: 13px;">Powered by Fal.ai FLUX Dev + Claude + Gemini</p>
+        </div>
     </footer>
 
+    <script>
+        let isSoundEnabled = true;
+        let audioContext = null;
+
+        function toggleSound() {
+            isSoundEnabled = !isSoundEnabled;
+            document.getElementById('soundToggle').textContent = isSoundEnabled ? '🔊' : '🔇';
+        }
+
+        function playSound(type = 'generate') {
+            if (!isSoundEnabled) return;
+
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            const sounds = {
+                generate: [440, 540, 640, 740],
+                click: [330],
+                success: [523, 659, 784]
+            };
+
+            const notes = sounds[type] || sounds.generate;
+            let time = audioContext.currentTime;
+
+            notes.forEach((freq) => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.2, time);
+                gain.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
+                osc.start(time);
+                osc.stop(time + 0.1);
+                time += 0.12;
+            });
+        }
+
+        function goToApp() {
+            playSound('success');
+            setTimeout(() => {
+                window.location.href = '/app';
+            }, 200);
+        }
+
+        // Play magic music on load
+        setTimeout(() => {
+            if (isSoundEnabled) playSound('success');
+        }, 1000);
+    </script>
 </body>
 </html>
