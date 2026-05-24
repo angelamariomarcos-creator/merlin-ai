@@ -6,6 +6,7 @@
     <title>Merlin AI - Generador de Imágenes</title>
     <script src="https://js.stripe.com/v3/"></script>
     <style>
+        /* Estilos integrados del Generador de Imágenes */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: #0a0a0a;
@@ -161,7 +162,6 @@
 </head>
 <body>
     <div class="studio-container">
-        
         <div class="sidebar-left">
             <div class="logo-section">
                 <div class="logo-icon">✨</div>
@@ -260,7 +260,6 @@
         </div>
     </div>
 
-    <!-- STRIPE PAYMENT MODAL -->
     <div id="stripeModal" class="stripe-modal">
         <div class="stripe-modal-content">
             <span class="stripe-modal-close" onclick="closeStripeModal()">&times;</span>
@@ -290,7 +289,6 @@
             isGenerating: false
         };
 
-        // INICIALIZAR STRIPE
         function initStripe() {
             fetch('/config')
                 .then(r => r.json())
@@ -365,7 +363,6 @@
                 pendingSelectionId = promptId;
                 return;
             }
-
             const match = promptsCatalog.find(p => p.id === promptId);
             if (match && match.prompt) {
                 document.getElementById('promptInput').value = match.prompt;
@@ -389,26 +386,18 @@
                 showStatus('Sistema de pagos no disponible', 'error');
                 return;
             }
-
             showStatus('Procesando pago...', 'info');
-
             try {
                 const response = await fetch('/create-payment-intent', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ promptId: currentPaymentPromptId, amount: 50 })
                 });
-
                 const paymentData = await response.json();
-
                 if (paymentData.clientSecret) {
                     const result = await stripe.confirmCardPayment(paymentData.clientSecret, {
-                        payment_method: {
-                            card: cardElement,
-                            billing_details: { name: 'Usuario Merlin AI' }
-                        }
+                        payment_method: { card: cardElement, billing_details: { name: 'Usuario Merlin AI' } }
                     });
-
                     if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
                         showStatus('Pago exitoso! Plantilla desbloqueada', 'success');
                         applyPromptById(currentPaymentPromptId);
@@ -452,9 +441,7 @@
                         guidance_scale: parseFloat(guidance)
                     })
                 });
-
                 const data = await response.json();
-
                 if (data.success) {
                     state.currentImageUrl = data.imageUrl;
                     canvas.innerHTML = `<img src="${data.imageUrl}" alt="Resultado Merlin AI">`;
@@ -502,11 +489,9 @@
             window.location.href = '/';
         }
 
-        // INIT
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('Merlin AI App - Listo');
             initStripe();
         });
     </script>
 </body>
-</html>
+</html> 
