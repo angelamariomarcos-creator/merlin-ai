@@ -9,21 +9,27 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const FAL_AI_KEY = process.env.FAL_AI_KEY || '';
 
-// 1. Asegurar archivos estáticos (carpeta 'public')
-app.use(express.static(path.join(__dirname, 'public')));
+// 1. SEGURIDAD: Cabeceras para que el traductor de Chrome no bloquee la App
+app.use((req, res, next) => {
+    res.setHeader("Content-Security-Policy", "default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *;");
+    next();
+});
+
+// 2. MIDDLEWARES
+app.use(express.static(__dirname)); // Sirve archivos directamente de la raíz
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// 2. Rutas de navegación
+// 3. RUTAS
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'landing.html'));
+    res.sendFile(path.join(__dirname, 'landing.html'));
 });
 
 app.get('/app', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// 3. API - Aseguramos la existencia de PREMIUM_PROMPTS
+// 4. API ENDPOINTS
 const PREMIUM_PROMPTS = [ { id: 'demo', title: 'Test', category: 'General', price: 0, tier: 'standard', creator: 'System', prompt: 'test' } ];
 
 app.get('/marketplace/prompts', (req, res) => {
@@ -36,7 +42,6 @@ app.post('/generate', async (req, res) => {
         const imageUrl = await generateImageWithFalAI(prompt, style, camera, 30, 12.5);
         res.json({ success: true, imageUrl: imageUrl });
     } catch (error) {
-        console.error("Error en generación:", error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
@@ -52,7 +57,7 @@ async function generateImageWithFalAI(basePrompt, style, camera, steps, guidance
     return data.images[0].url;
 }
 
-// 4. EL PUERTO (Vital)
+// 5. INICIAR SERVIDOR
 app.listen(PORT, () => {
-    console.log('Servidor activo en el puerto ' + PORT);
+    console.log('Servidor en modo producción en puerto ' + PORT);
 });
