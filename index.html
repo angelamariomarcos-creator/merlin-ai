@@ -3,36 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Merlin AI - Generador de Imágenes con IA</title>
+    <title>Merlin AI - Generador de Imágenes</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             background: #0a0a0a;
             color: #e8e8e8;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             overflow-x: hidden;
-            line-height: 1.6;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(-100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
         .studio-container {
             display: grid;
@@ -96,7 +80,6 @@
             font-weight: 700;
             color: #06b6d4;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .prompt-textarea {
@@ -127,7 +110,6 @@
         }
 
         .tab-btn {
-            flex: 1;
             padding: 8px 12px;
             background: none;
             border: none;
@@ -136,7 +118,6 @@
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
             border-bottom: 2px solid transparent;
             transition: all 0.3s;
         }
@@ -232,20 +213,6 @@
             background: #06b6d4;
             cursor: pointer;
             box-shadow: 0 0 12px rgba(6, 182, 212, 0.4);
-        }
-
-        .input-field {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(139, 92, 246, 0.25);
-            border-radius: 8px;
-            padding: 10px;
-            color: #e8e8e8;
-            font-size: 12px;
-        }
-
-        .input-field:focus {
-            outline: none;
-            border-color: #06b6d4;
         }
 
         .generate-btn {
@@ -352,7 +319,6 @@
         .canvas-area {
             flex: 1;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 24px;
@@ -372,13 +338,13 @@
             justify-content: center;
             overflow: hidden;
             position: relative;
-            cursor: crosshair;
         }
 
         .canvas-display img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            animation: fadeIn 0.5s;
         }
 
         .canvas-placeholder {
@@ -401,34 +367,6 @@
             animation: spin 1s linear infinite;
         }
 
-        .inpainting-tools {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .inpaint-btn {
-            padding: 8px 12px;
-            background: rgba(139, 92, 246, 0.1);
-            border: 1px solid rgba(139, 92, 246, 0.25);
-            border-radius: 6px;
-            color: #999;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .inpaint-btn:hover {
-            border-color: #06b6d4;
-            color: #06b6d4;
-        }
-
-        .inpaint-btn.active {
-            background: #06b6d4;
-            color: black;
-            border-color: #06b6d4;
-        }
-
         .sidebar-right {
             background: linear-gradient(180deg, #1a1a2e 0%, #0f0f23 100%);
             border-left: 1px solid rgba(139, 92, 246, 0.2);
@@ -444,7 +382,6 @@
             font-weight: 700;
             color: #06b6d4;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
             padding-bottom: 12px;
             border-bottom: 1px solid rgba(139, 92, 246, 0.2);
         }
@@ -453,8 +390,6 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            max-height: 500px;
-            overflow-y: auto;
         }
 
         .prompt-item {
@@ -497,10 +432,6 @@
             border-radius: 4px;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(6, 182, 212, 0.5);
-        }
-
         @media (max-width: 1200px) {
             .studio-container {
                 grid-template-columns: 250px 1fr;
@@ -523,13 +454,12 @@
 <body>
     <div class="studio-container">
         
-        <!-- SIDEBAR IZQUIERDA -->
         <div class="sidebar-left">
             <div class="logo-section">
                 <div class="logo-icon">✨</div>
                 <div class="logo-text">
                     <h1>MERLIN AI</h1>
-                    <p>Generador de imagenes</p>
+                    <p>Generador de imágenes</p>
                 </div>
             </div>
 
@@ -543,40 +473,37 @@
             </div>
 
             <div class="tabs-container">
-                <button class="tab-btn active" onclick="switchTab('camera')">Camara</button>
-                <button class="tab-btn" onclick="switchTab('style')">Estilo</button>
-                <button class="tab-btn" onclick="switchTab('advanced')">Avanzado</button>
+                <button class="tab-btn active" onclick="switchTab('camera', event)">Cámara</button>
+                <button class="tab-btn" onclick="switchTab('style', event)">Estilo</button>
+                <button class="tab-btn" onclick="switchTab('advanced', event)">Avanzado</button>
             </div>
 
-            <!-- TAB: CAMARA -->
             <div id="camera" class="controls-panel active">
                 <div class="control-group">
-                    <label class="control-label">Angulo de Camara</label>
+                    <label class="control-label">Tipo de Cámara</label>
                     <div class="button-grid">
-                        <button class="option-btn active" onclick="selectCamera('Frontal')">Frontal</button>
-                        <button class="option-btn" onclick="selectCamera('Perfil')">Perfil</button>
-                        <button class="option-btn" onclick="selectCamera('3/4')">3/4</button>
-                        <button class="option-btn" onclick="selectCamera('Aereo')">Aereo</button>
+                        <button class="option-btn active" id="cam-frontal" onclick="selectCamera('Frontal', event)">Frontal</button>
+                        <button class="option-btn" id="cam-perfil" onclick="selectCamera('Perfil', event)">Perfil</button>
+                        <button class="option-btn" id="cam-3cuartos" onclick="selectCamera('3/4', event)">3/4</button>
+                        <button class="option-btn" id="cam-aereo" onclick="selectCamera('Aereo', event)">Aéreo</button>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB: ESTILO -->
             <div id="style" class="controls-panel">
                 <div class="control-group">
-                    <label class="control-label">Estilo Artistico</label>
+                    <label class="control-label">Estilo Artístico</label>
                     <div class="button-grid">
-                        <button class="option-btn" onclick="selectStyle('Pixar')">Pixar</button>
-                        <button class="option-btn" onclick="selectStyle('Comic')">Comic</button>
-                        <button class="option-btn" onclick="selectStyle('Foto')">Foto Real</button>
-                        <button class="option-btn" onclick="selectStyle('Acuarela')">Acuarela</button>
-                        <button class="option-btn" onclick="selectStyle('Cyberpunk')">Cyberpunk</button>
-                        <button class="option-btn" onclick="selectStyle('Dark')">Dark</button>
+                        <button class="option-btn" id="style-pixar" onclick="selectStyle('Pixar', event)">Pixar</button>
+                        <button class="option-btn" id="style-comic" onclick="selectStyle('Comic', event)">Comic</button>
+                        <button class="option-btn" id="style-photo" onclick="selectStyle('Foto', event)">Foto Real</button>
+                        <button class="option-btn" id="style-acuarela" onclick="selectStyle('Acuarela', event)">Acuarela</button>
+                        <button class="option-btn" id="style-cyberpunk" onclick="selectStyle('Cyberpunk', event)">Cyberpunk</button>
+                        <button class="option-btn" id="style-dark" onclick="selectStyle('Dark', event)">Dark</button>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB: AVANZADO -->
             <div id="advanced" class="controls-panel">
                 <div class="control-group">
                     <label class="control-label">Pasos de Inferencia</label>
@@ -595,29 +522,20 @@
                 </div>
 
                 <div class="control-group">
-                    <label class="control-label">Guidance Scale (Precision)</label>
-                    <div class="control-value"><span id="guidanceVal">7.5</span></div>
+                    <label class="control-label">Guidance Scale</label>
+                    <div class="control-value"><span id="guidanceVal">12.5</span></div>
                     <div class="slider-container">
                         <input 
                             type="range" 
                             min="5" 
-                            max="15" 
+                            max="20" 
                             step="0.5"
-                            value="7.5" 
+                            value="12.5" 
                             class="slider"
                             id="guidanceSlider"
                             oninput="document.getElementById('guidanceVal').textContent = this.value"
                         >
                     </div>
-                </div>
-
-                <div class="control-group">
-                    <label class="control-label">Mi LoRA (Personaje/Estilo)</label>
-                    <select id="loraSelect" class="input-field">
-                        <option value="">Ninguno</option>
-                        <option value="javi_avatar">Mi Avatar (Javi)</option>
-                        <option value="custom_style">Estilo Personal</option>
-                    </select>
                 </div>
             </div>
 
@@ -628,12 +546,10 @@
             <div id="statusMsg" class="status-message"></div>
         </div>
 
-        <!-- CANVAS CENTRAL -->
         <div class="canvas-center">
             <div class="toolbar">
                 <div class="toolbar-left">
-                    <button class="toolbar-btn" onclick="togglePrompts()">Prompts</button>
-                    <button class="toolbar-btn" onclick="toggleInpaint()">Inpainting</button>
+                    <button class="toolbar-btn" onclick="loadPrompts()">Prompts Sugeridos</button>
                 </div>
                 <div>
                     <button class="toolbar-btn" onclick="downloadImage()">Descargar</button>
@@ -644,33 +560,17 @@
             <div class="canvas-area">
                 <div class="canvas-display" id="canvasDisplay">
                     <div class="canvas-placeholder">
-                        <div style="font-size: 48px;">Espera</div>
+                        <div style="font-size: 48px;">✨</div>
                         <div>Escribe tu idea y haz clic en GENERAR</div>
                     </div>
-                </div>
-
-                <!-- INPAINTING TOOLS (OCULTO) -->
-                <div id="inpaintTools" style="display: none; margin-top: 16px;">
-                    <div class="inpainting-tools">
-                        <button class="inpaint-btn active" onclick="setInpaintMode('draw')">Pintar Area</button>
-                        <button class="inpaint-btn" onclick="setInpaintMode('clear')">Limpiar</button>
-                        <button class="inpaint-btn" onclick="submitInpaint()">Aplicar Inpainting</button>
-                    </div>
-                    <textarea 
-                        id="inpaintPrompt" 
-                        class="prompt-textarea" 
-                        style="margin-top: 12px; min-height: 80px;"
-                        placeholder="Que quieres cambiar en esta area?"
-                    ></textarea>
                 </div>
             </div>
         </div>
 
-        <!-- SIDEBAR DERECHA -->
         <div class="sidebar-right">
             <div class="sidebar-header">Prompts Sugeridos</div>
             <div class="prompts-list" id="promptsList">
-                <div style="color: #666; font-size: 12px;">Cargando prompts...</div>
+                <div style="color: #666; font-size: 12px;">Click en "Prompts Sugeridos" para cargar</div>
             </div>
         </div>
     </div>
@@ -680,46 +580,91 @@
         const state = {
             selectedCamera: 'Frontal',
             selectedStyle: 'Ninguno',
-            selectedLora: '',
             currentImageUrl: null,
-            isGenerating: false,
-            inpaintMode: false,
-            inpaintArea: null
+            isGenerating: false
         };
 
-        // SWITCH TABS
-        function switchTab(tabName) {
+        // CAMERA KEYWORDS
+        const cameraKeywords = {
+            'Frontal': 'frontal view, facing camera, direct gaze',
+            'Perfil': 'side profile, profile view, 90 degree angle',
+            '3/4': 'three quarter view, 3/4 angle, dynamic angle',
+            'Aereo': 'aerial view, bird eye view, top down perspective'
+        };
+
+        // STYLE KEYWORDS
+        const styleKeywords = {
+            'Pixar': 'Pixar style, CGI animation, 3D render',
+            'Comic': 'comic book style, illustration, comic art',
+            'Foto': 'photorealistic, photo, realistic, 8K',
+            'Acuarela': 'watercolor, watercolor painting, artistic',
+            'Cyberpunk': 'cyberpunk, neon, futuristic, dark',
+            'Dark': 'dark mood, moody, dramatic lighting, shadows'
+        };
+
+        // SWITCH TABS (Corregido pasando el evento explícitamente)
+        function switchTab(tabName, evt) {
             document.querySelectorAll('.controls-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             
             document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            if (evt && evt.target) {
+                evt.target.classList.add('active');
+            }
         }
 
         // SELECT CAMERA
-        function selectCamera(camera) {
+        function selectCamera(camera, evt) {
             state.selectedCamera = camera;
             document.querySelectorAll('#camera .option-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            if (evt && evt.target) {
+                evt.target.classList.add('active');
+            }
+            showStatus('Cámara: ' + camera, 'info');
         }
 
         // SELECT STYLE
-        function selectStyle(style) {
+        function selectStyle(style, evt) {
             state.selectedStyle = style;
             document.querySelectorAll('#style .option-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            if (evt && evt.target) {
+                evt.target.classList.add('active');
+            }
+            showStatus('Estilo: ' + style, 'info');
+        }
+
+        // BUILD FINAL PROMPT
+        function buildFinalPrompt() {
+            let prompt = document.getElementById('promptInput').value.trim();
+            
+            if (!prompt) return null;
+
+            // AGREGAR ESTILO AL INICIO
+            if (state.selectedStyle && state.selectedStyle !== 'Ninguno') {
+                const styleKeyword = styleKeywords[state.selectedStyle];
+                prompt = '[Style: ' + state.selectedStyle + '] ' + styleKeyword + ', ' + prompt;
+            }
+
+            // AGREGAR CÁMARA
+            if (state.selectedCamera && state.selectedCamera !== 'Frontal') {
+                const cameraKeyword = cameraKeywords[state.selectedCamera];
+                prompt = prompt + ', ' + cameraKeyword;
+            } else {
+                prompt = prompt + ', ' + cameraKeywords['Frontal'];
+            }
+
+            return prompt;
         }
 
         // GENERAR IMAGEN
         async function generateImage() {
-            const prompt = document.getElementById('promptInput').value.trim();
+            const finalPrompt = buildFinalPrompt();
             const btn = document.getElementById('generateBtn');
             const canvas = document.getElementById('canvasDisplay');
             const steps = document.getElementById('stepsSlider').value;
             const guidance = document.getElementById('guidanceSlider').value;
-            const lora = document.getElementById('loraSelect').value;
 
-            if (!prompt) {
+            if (!finalPrompt) {
                 showStatus('Escribe un prompt detallado', 'error');
                 return;
             }
@@ -732,18 +677,25 @@
             canvas.innerHTML = '<div class="spinner"></div>';
 
             try {
-                showStatus('Generando imagen...', 'info');
+                showStatus('Generando imagen con Estilo: ' + state.selectedStyle + ', Cámara: ' + state.selectedCamera, 'info');
+
+                console.log('PAYLOAD:', {
+                    prompt: finalPrompt,
+                    style: state.selectedStyle,
+                    camera: state.selectedCamera,
+                    steps: parseInt(steps),
+                    guidance: parseFloat(guidance)
+                });
 
                 const response = await fetch('/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        prompt: prompt,
+                        prompt: finalPrompt,
                         style: state.selectedStyle,
                         camera: state.selectedCamera,
                         num_inference_steps: parseInt(steps),
-                        guidance_scale: parseFloat(guidance),
-                        lora_model: lora
+                        guidance_scale: parseFloat(guidance)
                     })
                 });
 
@@ -754,11 +706,12 @@
                     canvas.innerHTML = '<img src="' + data.imageUrl + '" alt="Generada">';
                     showStatus('Imagen generada exitosamente!', 'success');
                 } else {
-                    throw new Error(data.error || 'Error al generar');
+                    throw new Error(data.error || 'Error desconocido');
                 }
             } catch (error) {
                 canvas.innerHTML = '<div class="canvas-placeholder"><div style="color: #ef4444;">Error: ' + error.message + '</div></div>';
                 showStatus('Error: ' + error.message, 'error');
+                console.error('Error:', error);
             } finally {
                 state.isGenerating = false;
                 btn.classList.remove('loading');
@@ -766,34 +719,28 @@
             }
         }
 
-        // TOGGLE PROMPTS
-        function togglePrompts() {
-            const list = document.getElementById('promptsList');
-            if (list.style.display === 'none') {
-                loadPrompts();
-                list.style.display = 'flex';
-            } else {
-                list.style.display = 'none';
-            }
-        }
-
-        // LOAD PROMPTS
+        // LOAD PROMPTS (Corregido el escape de comillas simples)
         async function loadPrompts() {
             try {
                 const response = await fetch('/marketplace/prompts');
                 const data = await response.json();
 
                 if (data.success && data.prompts.length > 0) {
-                    const html = data.prompts.map(p => `
-                        <div class="prompt-item" onclick="usePrompt('${p.prompt.replace(/'/g, "\\'")}')">
-                            <div class="prompt-item-title">${p.title}</div>
-                            <div class="prompt-item-text">${p.prompt.substring(0, 60)}...</div>
-                        </div>
-                    `).join('');
+                    const html = data.prompts.map(p => {
+                        const safePrompt = p.prompt.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                        return `
+                            <div class="prompt-item" onclick="usePrompt('${safePrompt}')">
+                                <div class="prompt-item-title">${p.title}</div>
+                                <div class="prompt-item-text">${p.prompt.substring(0, 60)}...</div>
+                            </div>
+                        `;
+                    }).join('');
                     document.getElementById('promptsList').innerHTML = html;
+                    showStatus('Prompts cargados', 'success');
                 }
             } catch (error) {
-                console.error('Error cargando prompts:', error);
+                console.error('Error:', error);
+                showStatus('Error al cargar los prompts sugeridos', 'error');
             }
         }
 
@@ -801,61 +748,6 @@
         function usePrompt(prompt) {
             document.getElementById('promptInput').value = prompt;
             generateImage();
-        }
-
-        // TOGGLE INPAINT
-        function toggleInpaint() {
-            const tools = document.getElementById('inpaintTools');
-            state.inpaintMode = !state.inpaintMode;
-            tools.style.display = state.inpaintMode ? 'block' : 'none';
-        }
-
-        // SET INPAINT MODE
-        function setInpaintMode(mode) {
-            if (mode === 'clear') {
-                document.getElementById('inpaintPrompt').value = '';
-            }
-            document.querySelectorAll('.inpaint-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-        }
-
-        // SUBMIT INPAINT
-        async function submitInpaint() {
-            if (!state.currentImageUrl) {
-                showStatus('Primero genera una imagen', 'error');
-                return;
-            }
-
-            const inpaintPrompt = document.getElementById('inpaintPrompt').value.trim();
-            if (!inpaintPrompt) {
-                showStatus('Describe que quieres cambiar', 'error');
-                return;
-            }
-
-            showStatus('Aplicando inpainting...', 'info');
-
-            try {
-                const response = await fetch('/inpaint', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        imageUrl: state.currentImageUrl,
-                        prompt: inpaintPrompt
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    state.currentImageUrl = data.imageUrl;
-                    document.getElementById('canvasDisplay').innerHTML = '<img src="' + data.imageUrl + '" alt="Inpainted">';
-                    showStatus('Inpainting aplicado!', 'success');
-                } else {
-                    throw new Error(data.error);
-                }
-            } catch (error) {
-                showStatus('Error en inpainting: ' + error.message, 'error');
-            }
         }
 
         // DOWNLOAD IMAGE
@@ -874,7 +766,7 @@
 
         // CLEAR CANVAS
         function clearCanvas() {
-            document.getElementById('canvasDisplay').innerHTML = '<div class="canvas-placeholder"><div>Lienzo limpio</div></div>';
+            document.getElementById('canvasDisplay').innerHTML = '<div class="canvas-placeholder"><div style="font-size: 48px;">✨</div><div>Canvas limpiado</div></div>';
             state.currentImageUrl = null;
             showStatus('Canvas limpiado', 'info');
         }
@@ -886,14 +778,15 @@
             msg.className = 'status-message show ' + type;
             
             if (type !== 'error') {
-                setTimeout(() => msg.classList.remove('show'), 5000);
+                setTimeout(() => msg.classList.remove('show'), 4000);
             }
         }
 
         // INIT
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('Merlin AI Frontend - Listo');
-            loadPrompts();
+            console.log('Merlin AI Frontend Listo');
+            console.log('Estilos disponibles:', Object.keys(styleKeywords));
+            console.log('Cámaras disponibles:', Object.keys(cameraKeywords));
         });
     </script>
 </body>
