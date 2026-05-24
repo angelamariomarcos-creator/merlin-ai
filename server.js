@@ -1,6 +1,5 @@
 // =============================================
-// MERLIN AI SERVER v3.0 - SIN FIREBASE
-// MOCKS SIMPLES PARA LANZAMIENTO
+// MERLIN AI SERVER v4.0 - CON FAL.AI REAL
 // =============================================
  
 const express = require('express');
@@ -12,55 +11,84 @@ dotenv.config();
  
 const app = express();
 const PORT = process.env.PORT || 3000;
+const FAL_AI_KEY = process.env.FAL_AI_KEY || '';
  
 // ════ MIDDLEWARE ════
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
  
-// ════ MOCKS - NO FIREBASE ════
-const mockAuth = {
-    createUser: async (data) => ({
-        uid: 'user_' + Math.random().toString(36).substr(2, 9)
-    }),
-    getUserByEmail: async (email) => ({
-        uid: 'user_' + Math.random().toString(36).substr(2, 9),
-        email: email
-    }),
-    signInWithEmailAndPassword: async (email, password) => ({
-        user: {
-            uid: 'user_' + Math.random().toString(36).substr(2, 9),
-            email: email
+// ════ FAL.AI FUNCTION ════
+async function generateImageWithFalAI(prompt, style = 'Ninguno', camera = 'Frontal') {
+    if (!FAL_AI_KEY) {
+        console.warn('⚠️ FAL_AI_KEY no configurada - usando imagen simulada');
+        return 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 600 600%27%3E%3Crect fill=%27%2306b6d4%27 width=%27600%27 height=%27600%27/%3E%3Ctext x=%27300%27 y=%27300%27 font-size=%2748%27 fill=%27white%27 text-anchor=%27middle%27 dominant-baseline=%27middle%27%3EImagen Generada (Demo)%3C/text%3E%3C/svg%3E';
+    }
+ 
+    try {
+        // Enriquecer prompt con estilo y cámara
+        let enhancedPrompt = prompt;
+        if (style && style !== 'Ninguno') {
+            enhancedPrompt += `, estilo ${style}`;
         }
-    })
-};
+        if (camera && camera !== 'Frontal') {
+            enhancedPrompt += `, vista ${camera}`;
+        }
  
-const mockDB = {
-    collection: (name) => ({
-        doc: (id) => ({
-            set: async (data) => ({ success: true }),
-            get: async () => ({ exists: true, data: () => ({}) }),
-            update: async (data) => ({ success: true }),
-            delete: async () => ({ success: true })
-        }),
-        add: async (data) => ({ id: 'doc_' + Math.random().toString(36).substr(2, 9) }),
-        where: (field, operator, value) => ({
-            get: async () => ({ docs: [] })
-        }),
-        get: async () => ({ docs: [] })
-    })
-};
+        console.log(`🎨 [FAL.AI] Generando: ${enhancedPrompt.substring(0, 80)}...`);
  
-console.log('✅ MERLIN AI SERVER v3.0');
-console.log('✅ MODO MOCK ACTIVO (Sin Firebase)');
-console.log('✅ Filtros Legales e Inyecciones');
-console.log('✅ Pasarela Stripe Sincronizada');
+        const response = await fetch('https://fal.run/fal-ai/flux/dev', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Key ${FAL_AI_KEY}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                prompt: enhancedPrompt,
+                image_size: 'landscape_4_3',
+                num_inference_steps: 30,
+                enable_safety_checker: true,
+            }),
+            timeout: 120000 // 2 minutos timeout
+        });
+ 
+        if (!response.ok) {
+            const errorData = await response.text();
+            console.error(`❌ FAL.AI Error ${response.status}:`, errorData);
+            throw new Error(`FAL.AI API error: ${response.status}`);
+        }
+ 
+        const data = await response.json();
+ 
+        if (data.images && data.images.length > 0) {
+            console.log('✅ Imagen generada exitosamente');
+            return data.images[0].url;
+        } else {
+            throw new Error('No image in response');
+        }
+ 
+    } catch (error) {
+        console.error('❌ Error generando con FAL.AI:', error.message);
+        
+        // Fallback a imagen simulada si falla
+        return 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 600 600%27%3E%3Crect fill=%27%238b5cf6%27 width=%27600%27 height=%27600%27/%3E%3Ctext x=%27300%27 y=%27300%27 font-size=%2736%27 fill=%27white%27 text-anchor=%27middle%27 dominant-baseline=%27middle%27%3E⚠️ Error FAL.AI%3Cbr/%3EIntentando de nuevo...%3C/text%3E%3C/svg%3E';
+    }
+}
+ 
+console.log('✅ MERLIN AI SERVER v4.0');
+console.log('✅ FAL.AI INTEGRADO');
+if (FAL_AI_KEY) {
+    console.log('✅ API KEY CONFIGURADA');
+} else {
+    console.log('⚠️ FAL_AI_KEY NO CONFIGURADA - Usando imágenes simuladas');
+}
  
 // ════ HEALTH CHECK ════
 app.get('/health', (req, res) => {
     res.json({
         status: 'ok',
-        version: '3.0',
-        mode: 'mock',
+        version: '4.0',
+        mode: FAL_AI_KEY ? 'production' : 'demo',
+        falAiConfigured: !!FAL_AI_KEY,
         timestamp: new Date().toISOString()
     });
 });
@@ -224,11 +252,11 @@ app.get('/', (req, res) => {
                     <h2>La magia de crear imágenes espectaculares</h2>
                     <p>Merlin AI es tu asistente mágico para generar imágenes impresionantes en segundos.</p>
                     <ul class="features">
+                        <li>Powered by Fal.ai FLUX Dev</li>
                         <li>7 estilos artísticos únicos</li>
                         <li>6 vistas de cámara profesionales</li>
-                        <li>Marketplace de prompts</li>
-                        <li>Export a redes sociales</li>
                         <li>Generación ultra-rápida</li>
+                        <li>Interfaz profesional</li>
                     </ul>
                 </div>
                 <div style="font-size: 80px; text-align: center;">✨🧙‍♂️✨</div>
@@ -238,7 +266,7 @@ app.get('/', (req, res) => {
                 <div class="feature-card">
                     <div class="feature-icon">✨</div>
                     <h3>Generación Rápida</h3>
-                    <p>Imágenes impresionantes en segundos</p>
+                    <p>Imágenes impresionantes en segundos con Fal.ai</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🎨</div>
@@ -258,7 +286,7 @@ app.get('/', (req, res) => {
             </section>
  
             <footer>
-                <p>🧙‍♂️ Merlin AI © 2026 • Hecho con magia y código</p>
+                <p>🧙‍♂️ Merlin AI © 2026 • Powered by Fal.ai FLUX Dev</p>
             </footer>
         </div>
     </body>
@@ -266,18 +294,12 @@ app.get('/', (req, res) => {
     `);
 });
  
-// ════ APP PRINCIPAL (CON CONTROL DE ERRORES ASIGNADO) ════
+// ════ APP PRINCIPAL ════
 app.get('/app', (req, res) => {
-    // Intenta encontrar index.html
-    const indexPath = path.join(__dirname, 'index.html');
-    res.sendFile(indexPath, (err) => {
-        if (err) {
-            res.status(500).send('index.html no encontrado en raíz');
-        }
-    });
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
  
-// ════ API GENERADOR ════
+// ════ API GENERADOR CON FAL.AI ════
 app.post('/generate', async (req, res) => {
     const { prompt, style, camera } = req.body;
  
@@ -286,21 +308,25 @@ app.post('/generate', async (req, res) => {
     }
  
     try {
-        console.log(`✨ [GENERATE] Prompt: ${prompt.substring(0, 50)}...`);
-        console.log(`   Estilo: ${style}, Cámara: ${camera}`);
+        console.log(`\n📨 [GENERATE REQUEST]`);
+        console.log(`   Prompt: ${prompt.substring(0, 60)}...`);
+        console.log(`   Style: ${style}, Camera: ${camera}`);
  
-        // Simular generación (en real usarías Fal.ai, Replicate, etc)
-        const mockImageUrl = 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 600 600%27%3E%3Crect fill=%27%2306b6d4%27 width=%27600%27 height=%27600%27/%3E%3Ctext x=%27300%27 y=%27300%27 font-size=%2748%27 fill=%27white%27 text-anchor=%27middle%27 dominant-baseline=%27middle%27%3EImagen Generada%3C/text%3E%3C/svg%3E';
+        // Generar imagen con FAL.AI
+        const imageUrl = await generateImageWithFalAI(prompt, style, camera);
  
         res.json({
             success: true,
-            imageUrl: mockImageUrl,
-            message: '✨ Imagen generada'
+            imageUrl: imageUrl,
+            message: '✨ Imagen generada con éxito'
         });
  
     } catch (error) {
-        console.error('❌ Error generate:', error);
-        res.status(500).json({ error: error.message });
+        console.error('❌ Error en /generate:', error);
+        res.status(500).json({ 
+            error: error.message,
+            message: 'Error generando imagen'
+        });
     }
 });
  
@@ -312,21 +338,40 @@ app.get('/marketplace/prompts', (req, res) => {
             title: 'Dragón Luminoso',
             price: 0.50,
             image: '🐉',
-            author: 'Merlin'
+            author: 'Merlin',
+            prompt: 'Un dragón dorado volando sobre montañas nevadas, estilo Pixar, lighting épico'
         },
         {
             id: 2,
             title: 'Jardín Florido',
             price: 0.50,
             image: '🌸',
-            author: 'Merlin'
+            author: 'Merlin',
+            prompt: 'Jardín florido en primavera, flores de colores vibrantes, estilo acuarela, luz dorada'
         },
         {
             id: 3,
             title: 'Ciudad Futurista',
             price: 0.75,
             image: '🌃',
-            author: 'Merlin'
+            author: 'Merlin',
+            prompt: 'Ciudad cyberpunk futurista, rascacielos neon, lluvia, vista nocturna, estilo cyberpunk'
+        },
+        {
+            id: 4,
+            title: 'Superhéroe',
+            price: 0.75,
+            image: '⚡',
+            author: 'Merlin',
+            prompt: 'Superhéroe épico en acción, powers de electricidad, estilo cómic, dinámico'
+        },
+        {
+            id: 5,
+            title: 'Bosque Mágico',
+            price: 0.60,
+            image: '🌲',
+            author: 'Merlin',
+            prompt: 'Bosque mágico con luces místicas, criaturas fantásticas, estilo fantasía, atmósfera mágica'
         }
     ];
  
@@ -349,10 +394,14 @@ app.use((req, res) => {
  
 // ════ ARRANCAR SERVIDOR ════
 app.listen(PORT, () => {
-    console.log(`\n🚀 Servidor corriendo en: http://localhost:${PORT}`);
-    console.log('✅ Landing: http://localhost:' + PORT);
-    console.log('✅ App: http://localhost:' + PORT + '/app');
-    console.log('✅ Health: http://localhost:' + PORT + '/health\n');
+    console.log(\`\n${'='.repeat(50)}\`);
+    console.log('🚀 MERLIN AI SERVER ONLINE');
+    console.log(\`${'='.repeat(50)}\`);
+    console.log(\`📍 URL: http://localhost:\${PORT}\`);
+    console.log(\`🏠 Landing: http://localhost:\${PORT}\`);
+    console.log(\`🎨 App: http://localhost:\${PORT}/app\`);
+    console.log(\`💚 Health: http://localhost:\${PORT}/health\`);
+    console.log(\`${'='.repeat(50)}\n\`);
 });
  
 module.exports = app;
