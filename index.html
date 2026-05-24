@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Merlin AI - Generador de Imágenes</title>
+    <script src="https://js.stripe.com/v3/"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -52,6 +53,9 @@
         }
         .logo-text h1 { font-size: 18px; font-weight: 700; color: #06b6d4; letter-spacing: 1px; }
         .logo-text p { font-size: 10px; color: #666; text-transform: uppercase; }
+        .back-to-landing { font-size: 12px; margin-top: -10px; }
+        .back-to-landing a { color: #06b6d4; text-decoration: none; cursor: pointer; }
+        .back-to-landing a:hover { text-decoration: underline; }
 
         .prompt-box { display: flex; flex-direction: column; gap: 10px; }
         .prompt-label { font-size: 11px; font-weight: 700; color: #06b6d4; text-transform: uppercase; }
@@ -97,12 +101,15 @@
         .slider-container { display: flex; flex-direction: column; gap: 8px; }
         .slider { width: 100%; height: 5px; border-radius: 3px; background: rgba(139, 92, 246, 0.15); outline: none; -webkit-appearance: none; cursor: pointer; }
         .slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #06b6d4; cursor: pointer; box-shadow: 0 0 12px rgba(6, 182, 212, 0.4); }
+        .slider::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: #06b6d4; cursor: pointer; border: none; }
 
         .generate-btn {
             width: 100%; padding: 16px; background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%); border: none;
             border-radius: 10px; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all 0.3s; box-shadow: 0 0 20px rgba(6, 182, 212, 0.2); margin-top: 8px;
         }
+        .generate-btn:hover:not(.loading) { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(6, 182, 212, 0.4); }
         .generate-btn.loading { opacity: 0.7; cursor: not-allowed; }
+        
         .status-message { padding: 12px; border-radius: 8px; font-size: 12px; margin-top: 8px; display: none; animation: fadeIn 0.3s; }
         .status-message.show { display: block; }
         .status-message.success { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981; }
@@ -128,10 +135,25 @@
         .prompt-item:hover { border-color: #06b6d4; background: rgba(6, 182, 212, 0.08); }
         .prompt-item-title { font-weight: 600; color: #06b6d4; margin-bottom: 4px; }
         .prompt-item-text { color: #999; font-size: 11px; line-height: 1.3; }
+        .prompt-item-price { color: #10b981; font-size: 10px; margin-top: 4px; }
+        .prompt-item-buy { background: linear-gradient(135deg, #06b6d4, #8b5cf6); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; margin-top: 6px; width: 100%; }
+        .prompt-item-buy:hover { opacity: 0.9; }
 
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
         ::-webkit-scrollbar-thumb { background: rgba(6, 182, 212, 0.3); border-radius: 4px; }
+
+        .stripe-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
+        .stripe-modal.show { display: flex; }
+        .stripe-modal-content { background: #1a1a2e; border-radius: 16px; padding: 40px; max-width: 500px; width: 90%; }
+        .stripe-modal-close { float: right; font-size: 28px; cursor: pointer; color: #999; }
+        .stripe-modal-close:hover { color: #06b6d4; }
+        .stripe-modal h2 { color: #06b6d4; margin-bottom: 20px; }
+        .stripe-form-group { margin-bottom: 20px; }
+        .stripe-label { display: block; font-size: 12px; color: #999; margin-bottom: 8px; }
+        #card-element { padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(139,92,246,0.25); border-radius: 8px; color: #e8e8e8; }
+        .stripe-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #06b6d4, #8b5cf6); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; margin-top: 20px; }
+        .stripe-btn:hover { opacity: 0.9; }
 
         @media (max-width: 1200px) { .studio-container { grid-template-columns: 250px 1fr; } .sidebar-right { display: none; } }
         @media (max-width: 768px) { .studio-container { grid-template-columns: 1fr; } .sidebar-left { display: none; } }
@@ -147,6 +169,9 @@
                     <h1>MERLIN AI</h1>
                     <p>Generador de imágenes</p>
                 </div>
+            </div>
+            <div class="back-to-landing">
+                <a onclick="goToLanding()">← Volver al inicio</a>
             </div>
 
             <div class="prompt-box">
@@ -235,11 +260,28 @@
         </div>
     </div>
 
+    <!-- STRIPE PAYMENT MODAL -->
+    <div id="stripeModal" class="stripe-modal">
+        <div class="stripe-modal-content">
+            <span class="stripe-modal-close" onclick="closeStripeModal()">&times;</span>
+            <h2>Comprar Plantilla Premium</h2>
+            <p id="stripePriceText" style="color: #06b6d4; margin-bottom: 20px;"></p>
+            <div class="stripe-form-group">
+                <label class="stripe-label">Tarjeta de Crédito</label>
+                <div id="card-element"></div>
+            </div>
+            <button class="stripe-btn" onclick="processPayment()">Pagar ahora</button>
+        </div>
+    </div>
+
     <script>
-        // CONTROL DE ESTADO EXCLUSIVO (COLA ASÍNCRONA DE DEEPSEEK)
+        let stripe = null;
+        let elements = null;
+        let cardElement = null;
         let promptsCatalog = [];
         let isCatalogLoading = false;
         let pendingSelectionId = null;
+        let currentPaymentPromptId = null;
 
         const state = {
             selectedCamera: 'Frontal',
@@ -247,6 +289,19 @@
             currentImageUrl: null,
             isGenerating: false
         };
+
+        // INICIALIZAR STRIPE
+        function initStripe() {
+            fetch('/config')
+                .then(r => r.json())
+                .then(config => {
+                    stripe = Stripe(config.stripePublishableKey);
+                    elements = stripe.elements();
+                    cardElement = elements.create('card');
+                    cardElement.mount('#card-element');
+                })
+                .catch(() => console.log('Stripe no disponible (desarrollo)'));
+        }
 
         function switchTab(tabName, evt) {
             document.querySelectorAll('.controls-panel').forEach(p => p.classList.remove('active'));
@@ -259,67 +314,111 @@
             state.selectedCamera = camera;
             document.querySelectorAll('#camera .option-btn').forEach(b => b.classList.remove('active'));
             if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
-            showStatus('Cámara fijada: ' + camera, 'info');
+            showStatus('Cámara: ' + camera, 'info');
         }
 
         function selectStyle(style, evt) {
             state.selectedStyle = style;
             document.querySelectorAll('#style .option-btn').forEach(b => b.classList.remove('active'));
             if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
-            showStatus('Estilo fijado: ' + style, 'info');
+            showStatus('Estilo: ' + style, 'info');
         }
 
-        // SINCRONIZACIÓN ULTRA-SEGURA DEL MARKETPLACE (ANTI CONDICIONES DE CARRERA)
         async function loadPrompts() {
             if (isCatalogLoading) return;
             isCatalogLoading = true;
-            showStatus('Sincronizando catálogo con el servidor...', 'info');
+            showStatus('Sincronizando catálogo...', 'info');
 
             try {
                 const response = await fetch('/marketplace/prompts');
                 const result = await response.json();
 
-                if (result.success && Array.isArray(result.data)) {
-                    promptsCatalog = result.data;
+                if (result.success && Array.isArray(result.prompts)) {
+                    promptsCatalog = result.prompts;
                     isCatalogLoading = false;
 
-                    // Renderizado controlado del catálogo
                     const html = promptsCatalog.map(p => `
-                        <div class="prompt-item" onclick="applyPromptById('${p.id}')">
+                        <div class="prompt-item">
                             <div class="prompt-item-title">${p.title}</div>
-                            <div class="prompt-item-text">${p.promptText.substring(0, 65)}...</div>
+                            <div class="prompt-item-text">${p.prompt.substring(0, 55)}...</div>
+                            <div class="prompt-item-price">$${p.price}</div>
+                            <button class="prompt-item-buy" onclick="buyPrompt('${p.id}', ${p.price})">Comprar & Usar</button>
                         </div>
                     `).join('');
                     
                     document.getElementById('promptsList').innerHTML = html;
-                    showStatus('Catálogo verificado y cargado al 100%', 'success');
+                    showStatus('Catálogo cargado correctamente', 'success');
 
-                    // Procesar cola pendiente si el usuario pulsó antes de responder el servidor
                     if (pendingSelectionId) {
                         applyPromptById(pendingSelectionId);
                         pendingSelectionId = null;
                     }
                 }
             } catch (error) {
-                console.error(error);
                 isCatalogLoading = false;
-                showStatus('Fallo en la respuesta estructural del JSON', 'error');
+                showStatus('Error cargando catálogo', 'error');
             }
         }
 
         function applyPromptById(promptId) {
             if (isCatalogLoading) {
                 pendingSelectionId = promptId;
-                showStatus('Guardando selección en cola de espera...', 'info');
                 return;
             }
 
             const match = promptsCatalog.find(p => p.id === promptId);
-            if (match && match.promptText) {
-                document.getElementById('promptInput').value = match.promptText;
-                showStatus('Plantilla cargada de forma segura', 'success');
-            } else {
-                showStatus('Error: Contrato de datos corrupto o vacío', 'error');
+            if (match && match.prompt) {
+                document.getElementById('promptInput').value = match.prompt;
+                showStatus('Plantilla cargada', 'success');
+            }
+        }
+
+        function buyPrompt(promptId, price) {
+            currentPaymentPromptId = promptId;
+            document.getElementById('stripePriceText').textContent = 'Precio: $' + price.toFixed(2);
+            document.getElementById('stripeModal').classList.add('show');
+        }
+
+        function closeStripeModal() {
+            document.getElementById('stripeModal').classList.remove('show');
+            currentPaymentPromptId = null;
+        }
+
+        async function processPayment() {
+            if (!stripe || !cardElement) {
+                showStatus('Sistema de pagos no disponible', 'error');
+                return;
+            }
+
+            showStatus('Procesando pago...', 'info');
+
+            try {
+                const response = await fetch('/create-payment-intent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ promptId: currentPaymentPromptId, amount: 50 })
+                });
+
+                const paymentData = await response.json();
+
+                if (paymentData.clientSecret) {
+                    const result = await stripe.confirmCardPayment(paymentData.clientSecret, {
+                        payment_method: {
+                            card: cardElement,
+                            billing_details: { name: 'Usuario Merlin AI' }
+                        }
+                    });
+
+                    if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
+                        showStatus('Pago exitoso! Plantilla desbloqueada', 'success');
+                        applyPromptById(currentPaymentPromptId);
+                        closeStripeModal();
+                    } else {
+                        showStatus('Pago rechazado', 'error');
+                    }
+                }
+            } catch (error) {
+                showStatus('Error en pago: ' + error.message, 'error');
             }
         }
 
@@ -331,7 +430,7 @@
             const guidance = document.getElementById('guidanceSlider').value;
 
             if (!promptText) {
-                showStatus('El campo de prompt no puede estar vacío', 'error');
+                showStatus('El prompt no puede estar vacío', 'error');
                 return;
             }
 
@@ -359,14 +458,14 @@
                 if (data.success) {
                     state.currentImageUrl = data.imageUrl;
                     canvas.innerHTML = `<img src="${data.imageUrl}" alt="Resultado Merlin AI">`;
-                    showStatus('Imagen renderizada con éxito', 'success');
+                    showStatus('Imagen generada exitosamente', 'success');
                 } else {
-                    throw new Error(data.error || 'Excepción en motor de IA');
+                    throw new Error(data.error || 'Error desconocido');
                 }
             } catch (error) {
                 canvas.innerHTML = `<div class="canvas-placeholder"><div style="color: #ef4444;">Error: ${error.message}</div></div>`;
-                showStatus('Error de procesamiento: ' + error.message, 'error');
-            } final {
+                showStatus('Error: ' + error.message, 'error');
+            } finally {
                 state.isGenerating = false;
                 btn.classList.remove('loading');
                 btn.textContent = 'Generar Imagen';
@@ -375,7 +474,7 @@
 
         function downloadImage() {
             if (!state.currentImageUrl) {
-                showStatus('No hay elementos en el lienzo para procesar descarga', 'error');
+                showStatus('No hay imagen para descargar', 'error');
                 return;
             }
             const link = document.createElement('a');
@@ -398,6 +497,16 @@
                 setTimeout(() => msg.classList.remove('show'), 4000);
             }
         }
+
+        function goToLanding() {
+            window.location.href = '/';
+        }
+
+        // INIT
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Merlin AI App - Listo');
+            initStripe();
+        });
     </script>
 </body>
 </html>
