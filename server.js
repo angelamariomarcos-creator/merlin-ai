@@ -29,7 +29,7 @@ function normalizePrompt(prompt) {
         .substring(0, 1000);
 }
 
-// ════ BUILD FINAL PROMPT ════
+// ════ BUILD FINAL PROMPT (RECALIBRADO PARA NUEVA YORK) ════
 function buildFinalPrompt(basePrompt, style, camera) {
     let prompt = normalizePrompt(basePrompt);
     
@@ -51,31 +51,32 @@ function buildFinalPrompt(basePrompt, style, camera) {
         'Aereo': 'aerial view, bird eye view, top down perspective, high angle'
     };
 
-    // Agregar estilo al inicio
+    // Ponemos el sujeto del usuario primero para que la IA le haga caso estricto
+    let finalPrompt = 'subject: ' + prompt;
+
+    // Agregar estilo de forma suave para que no se coma la idea principal
     if (style && style !== 'Ninguno' && styleKeywords[style]) {
-        prompt = '[STYLE: ' + style + '] ' + styleKeywords[style] + ', ' + prompt;
+        finalPrompt = finalPrompt + ', style rendering: ' + styleKeywords[style];
     }
 
     // Agregar camara
     if (camera && camera !== 'Frontal' && cameraKeywords[camera]) {
-        prompt = prompt + ', ' + cameraKeywords[camera];
+        finalPrompt = finalPrompt + ', composition: ' + cameraKeywords[camera];
     } else if (cameraKeywords['Frontal']) {
-        prompt = prompt + ', ' + cameraKeywords['Frontal'];
+        finalPrompt = finalPrompt + ', composition: ' + cameraKeywords['Frontal'];
     }
 
-    return prompt;
+    return finalPrompt;
 }
 
 // ════ FAL.AI REAL GENERATOR ════
 async function generateImageWithFalAI(basePrompt, style, camera, steps, guidance) {
-    // Validar credenciales
     if (!FAL_AI_KEY) {
         console.error('ERROR: FAL_AI_KEY no esta configurada en las variables de entorno');
         throw new Error('FAL_AI_KEY no configurada - Contacta al administrador');
     }
 
     try {
-        // Construir prompt final
         const finalPrompt = buildFinalPrompt(basePrompt, style, camera);
         
         if (!finalPrompt) {
@@ -93,7 +94,6 @@ async function generateImageWithFalAI(basePrompt, style, camera, steps, guidance
         console.log('Steps:', stepsInt);
         console.log('========================');
 
-        // Llamada REAL a FAL.AI
         const response = await fetch('https://fal.run/fal-ai/flux/dev', {
             method: 'POST',
             headers: {
@@ -252,10 +252,26 @@ app.get('/', (req, res) => {
                 background: linear-gradient(135deg, #06b6d4, #8b5cf6);
                 color: white;
                 transition: all 0.3s;
+                text-decoration: none;
+                display: inline-block;
             }
 
             .btn:hover {
                 transform: scale(1.05);
+            }
+
+            .hero-img-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .logo-dibujo {
+                max-width: 320px;
+                height: auto;
+                border-radius: 20px;
+                box-shadow: 0 0 30px rgba(6, 182, 212, 0.4);
+                border: 2px solid rgba(139, 92, 246, 0.3);
             }
 
             footer {
@@ -289,7 +305,9 @@ app.get('/', (req, res) => {
                         <li>Descarga HD</li>
                     </ul>
                 </div>
-                <div style="font-size: 120px; text-align: center;">✨</div>
+                <div class="hero-img-container">
+                    <img src="/img/merlin-dibujo.webp" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\'font-size: 120px;\'>✨</div>';" class="logo-dibujo" alt="Merlin por Javi">
+                </div>
             </section>
 
             <section class="cta-section">
@@ -428,10 +446,6 @@ app.listen(PORT, () => {
     console.log('MERLIN AI - ONLINE');
     console.log('Puerto: ' + PORT);
     console.log('FAL.AI: ' + (FAL_AI_KEY ? 'CONECTADO' : 'NO CONFIGURADO'));
-    console.log('=====================================');
-    console.log('Landing: http://localhost:' + PORT);
-    console.log('App: http://localhost:' + PORT + '/app');
-    console.log('Health: http://localhost:' + PORT + '/health');
     console.log('=====================================');
 });
 
