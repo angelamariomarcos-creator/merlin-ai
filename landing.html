@@ -14,13 +14,13 @@
             overflow-x: hidden;
             min-height: 100vh;
         }
-
+ 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
         @keyframes glow { 0%, 100% { box-shadow: 0 0 20px rgba(6, 182, 212, 0.3); } 50% { box-shadow: 0 0 40px rgba(6, 182, 212, 0.6); } }
-
+ 
         .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
-
+ 
         /* HEADER */
         header {
             padding: 30px 0;
@@ -35,7 +35,7 @@
             z-index: 100;
             animation: fadeIn 0.6s ease;
         }
-
+ 
         .logo { display: flex; align-items: center; gap: 12px; }
         .logo-icon {
             width: 50px;
@@ -48,9 +48,9 @@
             font-size: 28px;
             box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
         }
-
+ 
         .logo h1 { font-size: 24px; color: #06b6d4; font-weight: 700; letter-spacing: 1px; }
-
+ 
         .header-right { display: flex; align-items: center; gap: 20px; }
         .sound-toggle {
             background: rgba(139, 92, 246, 0.2);
@@ -66,9 +66,9 @@
             justify-content: center;
             transition: all 0.3s;
         }
-
+ 
         .sound-toggle:hover { border-color: #06b6d4; box-shadow: 0 0 20px rgba(6, 182, 212, 0.3); }
-
+ 
         .cta-btn {
             padding: 12px 30px;
             background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
@@ -80,9 +80,9 @@
             transition: all 0.3s;
             box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
         }
-
+ 
         .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(6, 182, 212, 0.5); }
-
+ 
         /* HERO SECTION */
         .hero {
             display: grid;
@@ -92,7 +92,7 @@
             margin: 100px 0 80px 0;
             animation: fadeIn 0.8s ease 0.2s backwards;
         }
-
+ 
         .hero-text h2 {
             font-size: 56px;
             margin-bottom: 20px;
@@ -103,25 +103,25 @@
             font-weight: 900;
             line-height: 1.1;
         }
-
+ 
         .hero-text p {
             font-size: 18px;
             color: #bbb;
             margin-bottom: 30px;
             line-height: 1.8;
         }
-
+ 
         .hero-features {
             list-style: none;
             margin: 30px 0;
         }
-
+ 
         .hero-features li {
             padding: 10px 0;
             font-size: 16px;
             color: #ccc;
         }
-
+ 
         .hero-features li:before {
             content: "✓ ";
             color: #06b6d4;
@@ -129,41 +129,41 @@
             margin-right: 10px;
             font-size: 18px;
         }
-
+ 
         .hero-visual {
             font-size: 120px;
             text-align: center;
             animation: float 6s ease-in-out infinite;
         }
-
+ 
         /* FEATURES GRID */
         .features-section {
             margin: 120px 0;
             animation: fadeIn 1s ease 0.4s backwards;
         }
-
+ 
         .section-header {
             text-align: center;
             margin-bottom: 60px;
         }
-
+ 
         .section-header h2 {
             font-size: 48px;
             color: #06b6d4;
             margin-bottom: 15px;
         }
-
+ 
         .section-header p {
             font-size: 18px;
             color: #999;
         }
-
+ 
         .features-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 30px;
         }
-
+ 
         .feature-card {
             background: rgba(139, 92, 246, 0.08);
             border: 1px solid rgba(139, 92, 246, 0.2);
@@ -176,7 +176,7 @@
             position: relative;
             overflow: hidden;
         }
-
+ 
         .feature-card:nth-child(1) { animation-delay: 0.1s; }
         .feature-card:nth-child(2) { animation-delay: 0.2s; }
         .feature-card:nth-child(3) { animation-delay: 0.3s; }
@@ -186,14 +186,14 @@
         .feature-card:nth-child(7) { animation-delay: 0.7s; }
         .feature-card:nth-child(8) { animation-delay: 0.8s; }
         .feature-card:nth-child(9) { animation-delay: 0.9s; }
-
+ 
         .feature-card:hover {
             border-color: #06b6d4;
             background: rgba(6, 182, 212, 0.1);
             transform: translateY(-10px);
             box-shadow: 0 20px 40px rgba(6, 182, 212, 0.2);
         }
-
+ 
         .feature-card:hover::before {
             content: '';
             position: absolute;
@@ -204,40 +204,40 @@
             background: radial-gradient(circle at center, rgba(6, 182, 212, 0.1) 0%, transparent 70%);
             pointer-events: none;
         }
-
+ 
         .feature-icon {
             font-size: 60px;
             margin-bottom: 20px;
             display: inline-block;
         }
-
+ 
         .feature-card h3 {
             font-size: 22px;
             color: #06b6d4;
             margin-bottom: 15px;
             font-weight: 700;
         }
-
+ 
         .feature-card p {
             font-size: 14px;
             color: #999;
             line-height: 1.6;
         }
-
+ 
         /* PRICING SECTION */
         .pricing-section {
             margin: 120px 0;
             text-align: center;
             animation: fadeIn 1s ease 0.6s backwards;
         }
-
+ 
         .pricing-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 30px;
             margin-top: 50px;
         }
-
+ 
         .pricing-card {
             background: rgba(139, 92, 246, 0.08);
             border: 1px solid rgba(139, 92, 246, 0.2);
@@ -245,57 +245,57 @@
             padding: 40px 30px;
             transition: all 0.3s;
         }
-
+ 
         .pricing-card.featured {
             background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
             border-color: #06b6d4;
             transform: scale(1.05);
         }
-
+ 
         .pricing-card:hover {
             border-color: #06b6d4;
             transform: translateY(-10px);
         }
-
+ 
         .pricing-card h3 {
             font-size: 24px;
             color: #06b6d4;
             margin-bottom: 15px;
         }
-
+ 
         .pricing-card .price {
             font-size: 48px;
             font-weight: 900;
             color: #10b981;
             margin-bottom: 10px;
         }
-
+ 
         .pricing-card .period {
             font-size: 14px;
             color: #666;
             margin-bottom: 30px;
         }
-
+ 
         .pricing-features {
             list-style: none;
             text-align: left;
             margin: 30px 0;
         }
-
+ 
         .pricing-features li {
             padding: 10px 0;
             font-size: 14px;
             color: #ccc;
             border-bottom: 1px solid rgba(139, 92, 246, 0.1);
         }
-
+ 
         .pricing-features li:before {
             content: "✓ ";
             color: #10b981;
             font-weight: bold;
             margin-right: 10px;
         }
-
+ 
         .pricing-btn {
             width: 100%;
             padding: 14px;
@@ -308,9 +308,9 @@
             margin-top: 20px;
             transition: all 0.3s;
         }
-
+ 
         .pricing-btn:hover { transform: scale(1.02); }
-
+ 
         /* CTA FINAL */
         .final-cta {
             margin: 120px 0;
@@ -321,19 +321,19 @@
             border-radius: 16px;
             animation: fadeIn 1s ease 0.8s backwards;
         }
-
+ 
         .final-cta h2 {
             font-size: 42px;
             margin-bottom: 20px;
             color: white;
         }
-
+ 
         .final-cta p {
             font-size: 18px;
             color: #bbb;
             margin-bottom: 30px;
         }
-
+ 
         .final-cta-btn {
             padding: 18px 50px;
             font-size: 18px;
@@ -346,12 +346,12 @@
             transition: all 0.3s;
             box-shadow: 0 0 30px rgba(6, 182, 212, 0.3);
         }
-
+ 
         .final-cta-btn:hover {
             transform: scale(1.05);
             box-shadow: 0 0 50px rgba(6, 182, 212, 0.5);
         }
-
+ 
         /* FOOTER */
         footer {
             border-top: 1px solid rgba(139, 92, 246, 0.2);
@@ -360,7 +360,7 @@
             color: #666;
             margin-top: 100px;
         }
-
+ 
         /* RESPONSIVE */
         @media (max-width: 1024px) {
             .hero { grid-template-columns: 1fr; gap: 40px; }
@@ -368,7 +368,7 @@
             .pricing-grid { grid-template-columns: repeat(2, 1fr); }
             .hero-text h2 { font-size: 42px; }
         }
-
+ 
         @media (max-width: 768px) {
             .hero-text h2 { font-size: 32px; }
             .features-grid { grid-template-columns: 1fr; }
@@ -394,7 +394,7 @@
             </div>
         </div>
     </header>
-
+ 
     <!-- HERO SECTION -->
     <section class="hero">
         <div class="container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;">
@@ -410,16 +410,16 @@
                     <li>Música mágica y efectos de sonido</li>
                     <li>Historial y prompts favoritos</li>
                 </ul>
-
+ 
                 <button class="cta-btn" onclick="goToApp()" style="font-size: 16px; padding: 14px 40px;">
                     Comienza Ahora → 🎯
                 </button>
             </div>
-
+ 
             <div class="hero-visual">✨🧙‍♂️✨</div>
         </div>
     </section>
-
+ 
     <!-- 9 FEATURES SECTION -->
     <section class="features-section">
         <div class="container">
@@ -427,7 +427,7 @@
                 <h2>9 Features Premium Integrados</h2>
                 <p>Todo lo que necesitas en una sola plataforma</p>
             </div>
-
+ 
             <div class="features-grid">
                 <!-- 1 -->
                 <div class="feature-card" onclick="playSound('click')">
@@ -435,56 +435,56 @@
                     <h3>Export para Redes</h3>
                     <p>Instagram 1080x1080, TikTok 1080x1920, LinkedIn 1200x627, X 1200x675. Un click y listo.</p>
                 </div>
-
+ 
                 <!-- 2 -->
                 <div class="feature-card" onclick="playSound('click')">
                     <div class="feature-icon">✏️</div>
                     <h3>Inpainting Visual</h3>
                     <p>Pinta con el ratón la zona que quieres cambiar. La IA regenera solo ese trozo manteniendo el resto.</p>
                 </div>
-
+ 
                 <!-- 3 -->
                 <div class="feature-card" onclick="playSound('click')">
                     <div class="feature-icon">💬</div>
                     <h3>Stickers WhatsApp</h3>
                     <p>Genera cualquier imagen y conviértela en sticker para WhatsApp automáticamente. Fondo transparente WebP 512x512.</p>
                 </div>
-
+ 
                 <!-- 4 -->
                 <div class="feature-card" onclick="playSound('click')">
                     <div class="feature-icon">🖼️</div>
                     <h3>Reference Board</h3>
                     <p>Sube 5 imágenes de referencia. Gemini Vision analiza el estilo de todas y genera un prompt que los fusiona.</p>
                 </div>
-
+ 
                 <!-- 5 -->
                 <div class="feature-card" onclick="playSound('click')">
                     <div class="feature-icon">⬆️</div>
                     <h3>Upscale 4x HD</h3>
                     <p>Escala cualquier imagen a 4 veces su resolución original. De 512px a 2048px sin perder detalle.</p>
                 </div>
-
+ 
                 <!-- 6 -->
                 <div class="feature-card" onclick="playSound('click')">
                     <div class="feature-icon">✨</div>
                     <h3>Prompt Enhancer</h3>
                     <p>Pulsa la varita mágica y Merlin expande tu prompt con palabras clave de calidad profesional automáticamente.</p>
                 </div>
-
+ 
                 <!-- 7 -->
                 <div class="feature-card" onclick="playSound('click')">
                     <div class="feature-icon">🎨</div>
                     <h3>5 Modos de Estilo</h3>
                     <p>Comic, Cyberpunk, Acuarela, Dark Fantasy y Neon. Un click y Merlin inyecta el estilo en tu imagen.</p>
                 </div>
-
+ 
                 <!-- 8 -->
                 <div class="feature-card" onclick="playSound('click')">
                     <div class="feature-icon">🎬</div>
                     <h3>Batch de 4 Variantes</h3>
                     <p>Genera 4 versiones distintas del mismo prompt. Elige la mejor, descárgatelas todas en un ZIP.</p>
                 </div>
-
+ 
                 <!-- 9 -->
                 <div class="feature-card" onclick="playSound('click')">
                     <div class="feature-icon">📐</div>
@@ -494,7 +494,7 @@
             </div>
         </div>
     </section>
-
+ 
     <!-- PRICING SECTION -->
     <section class="pricing-section">
         <div class="container">
@@ -502,7 +502,7 @@
                 <h2>Planes Simples y Claros</h2>
                 <p>Elige lo que mejor se adapta a ti</p>
             </div>
-
+ 
             <div class="pricing-grid">
                 <!-- FREEMIUM -->
                 <div class="pricing-card">
@@ -517,7 +517,7 @@
                     </ul>
                     <button class="pricing-btn" onclick="goToApp()">Empezar Gratis</button>
                 </div>
-
+ 
                 <!-- MONTHLY (FEATURED) -->
                 <div class="pricing-card featured">
                     <h3>Monthly Pro</h3>
@@ -533,7 +533,7 @@
                     </ul>
                     <button class="pricing-btn" onclick="goToApp()">Suscribirse Ahora</button>
                 </div>
-
+ 
                 <!-- ANNUAL -->
                 <div class="pricing-card">
                     <h3>Annual Pro</h3>
@@ -551,7 +551,7 @@
             </div>
         </div>
     </section>
-
+ 
     <!-- FINAL CTA -->
     <section class="final-cta">
         <div class="container">
@@ -560,7 +560,7 @@
             <button class="final-cta-btn" onclick="goToApp()">🚀 Abre Merlin AI Ahora</button>
         </div>
     </section>
-
+ 
     <!-- FOOTER -->
     <footer>
         <div class="container">
@@ -568,32 +568,32 @@
             <p style="margin-top: 10px; font-size: 13px;">Powered by Fal.ai FLUX Dev + Claude + Gemini</p>
         </div>
     </footer>
-
+ 
     <script>
         let isSoundEnabled = true;
         let audioContext = null;
-
+ 
         function toggleSound() {
             isSoundEnabled = !isSoundEnabled;
             document.getElementById('soundToggle').textContent = isSoundEnabled ? '🔊' : '🔇';
         }
-
+ 
         function playSound(type = 'generate') {
             if (!isSoundEnabled) return;
-
+ 
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
-
+ 
             const sounds = {
                 generate: [440, 540, 640, 740],
                 click: [330],
                 success: [523, 659, 784]
             };
-
+ 
             const notes = sounds[type] || sounds.generate;
             let time = audioContext.currentTime;
-
+ 
             notes.forEach((freq) => {
                 const osc = audioContext.createOscillator();
                 const gain = audioContext.createGain();
@@ -607,14 +607,14 @@
                 time += 0.12;
             });
         }
-
+ 
         function goToApp() {
             playSound('success');
             setTimeout(() => {
                 window.location.href = '/app';
             }, 200);
         }
-
+ 
         // Play magic music on load
         setTimeout(() => {
             if (isSoundEnabled) playSound('success');
