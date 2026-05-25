@@ -27,7 +27,7 @@
             width: 100%;
         }
  
-        /* MOBILE FIRST - DEFAULT */
+        /* MOBILE FIRST */
         .sidebar-left {
             background: linear-gradient(180deg, #1a1a2e 0%, #0f0f23 100%);
             border-right: 1px solid rgba(139, 92, 246, 0.2);
@@ -38,7 +38,7 @@
             gap: 16px;
             animation: slideIn 0.5s ease;
             height: auto;
-            max-height: 50vh;
+            max-height: 45vh;
             border-bottom: 1px solid rgba(139, 92, 246, 0.2);
         }
  
@@ -146,7 +146,6 @@
         .controls-panel.active { display: flex; animation: fadeIn 0.3s; }
         .control-group { display: flex; flex-direction: column; gap: 8px; }
         .control-label { font-size: 9px; font-weight: 700; color: #999; }
-        .control-value { font-size: 11px; color: #06b6d4; font-weight: 700; }
  
         .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
         .option-btn {
@@ -175,21 +174,137 @@
         .status-message.info { background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3); color: #06b6d4; }
  
         /* CANVAS CENTER */
-        .canvas-center { display: flex; flex-direction: column; background: #0a0a0a; overflow: hidden; flex: 1; }
-        .toolbar { background: rgba(26, 26, 46, 0.8); border-bottom: 1px solid rgba(139, 92, 246, 0.2); padding: 12px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+        .canvas-center { 
+            display: flex; 
+            flex-direction: column; 
+            background: #0a0a0a; 
+            overflow: hidden; 
+            flex: 1;
+            min-height: 0;
+        }
+ 
+        .toolbar { 
+            background: rgba(26, 26, 46, 0.8); 
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2); 
+            padding: 12px; 
+            display: flex; 
+            justify-content: space-between; 
+            gap: 8px; 
+            flex-wrap: wrap; 
+        }
+ 
         .toolbar-left { display: flex; gap: 6px; flex-wrap: wrap; }
-        .toolbar-btn { padding: 6px 10px; background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.25); border-radius: 6px; color: #999; font-size: 10px; cursor: pointer; transition: all 0.3s; white-space: nowrap; }
+        .toolbar-btn { 
+            padding: 6px 10px; 
+            background: rgba(139, 92, 246, 0.08); 
+            border: 1px solid rgba(139, 92, 246, 0.25); 
+            border-radius: 6px; 
+            color: #999; 
+            font-size: 10px; 
+            cursor: pointer; 
+            transition: all 0.3s; 
+            white-space: nowrap; 
+        }
         .toolbar-btn:active { border-color: #06b6d4; color: #06b6d4; }
  
-        .canvas-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px; overflow: auto; background: linear-gradient(135deg, rgba(15, 15, 35, 0.5), rgba(10, 10, 26, 0.5)); }
-        .canvas-display { width: 100%; max-width: 100%; aspect-ratio: 4/3; background: rgba(139, 92, 246, 0.05); border: 2px dashed rgba(6, 182, 212, 0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        .canvas-area { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: flex-start; 
+            padding: 12px; 
+            overflow-y: auto; 
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.5), rgba(10, 10, 26, 0.5)); 
+            gap: 12px;
+            min-height: 0;
+        }
+ 
+        .canvas-display { 
+            width: 100%; 
+            height: 250px;
+            background: rgba(139, 92, 246, 0.05); 
+            border: 2px dashed rgba(6, 182, 212, 0.3); 
+            border-radius: 12px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            overflow: hidden; 
+            position: relative; 
+            flex-shrink: 0;
+        }
+ 
         .canvas-display img { width: 100%; height: 100%; object-fit: cover; }
-        .canvas-placeholder { display: flex; flex-direction: column; align-items: center; gap: 12px; color: #555; text-align: center; padding: 24px; }
-        .spinner { width: 40px; height: 40px; border: 3px solid rgba(6, 182, 212, 0.2); border-top-color: #06b6d4; border-radius: 50%; animation: spin 1s linear infinite; }
+ 
+        .canvas-placeholder { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 8px; 
+            color: #555; 
+            text-align: center; 
+            padding: 12px; 
+        }
+ 
+        .canvas-placeholder div:first-child { font-size: 32px; }
+        .canvas-placeholder div:last-child { font-size: 12px; }
+ 
+        .spinner { 
+            width: 36px; 
+            height: 36px; 
+            border: 3px solid rgba(6, 182, 212, 0.2); 
+            border-top-color: #06b6d4; 
+            border-radius: 50%; 
+            animation: spin 1s linear infinite; 
+        }
+ 
+        .canvas-actions {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            flex-wrap: wrap;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+ 
+        .canvas-actions button {
+            flex: 1;
+            min-width: 90px;
+            padding: 14px;
+            background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+ 
+        .canvas-actions button:active {
+            transform: scale(0.98);
+        }
  
         /* SIDEBAR RIGHT */
-        .sidebar-right { background: linear-gradient(180deg, #1a1a2e, #0f0f23); border-top: 1px solid rgba(139, 92, 246, 0.2); overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; height: auto; max-height: 40vh; }
-        .sidebar-header { font-size: 10px; font-weight: 700; color: #06b6d4; padding-bottom: 10px; border-bottom: 1px solid rgba(139, 92, 246, 0.2); }
+        .sidebar-right { 
+            background: linear-gradient(180deg, #1a1a2e, #0f0f23); 
+            border-top: 1px solid rgba(139, 92, 246, 0.2); 
+            overflow-y: auto; 
+            padding: 16px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 16px; 
+            height: auto; 
+            max-height: 35vh; 
+        }
+ 
+        .sidebar-header { 
+            font-size: 10px; 
+            font-weight: 700; 
+            color: #06b6d4; 
+            padding-bottom: 10px; 
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2); 
+        }
  
         .color-palette {
             display: grid;
@@ -209,23 +324,52 @@
  
         .color-swatch:active {
             border-color: #06b6d4;
-            transform: scale(1.05);
         }
  
-        .prompts-list { display: flex; flex-direction: column; gap: 10px; }
-        .prompt-item { background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 6px; padding: 10px; cursor: pointer; transition: all 0.3s; font-size: 10px; }
-        .prompt-item:active { border-color: #06b6d4; background: rgba(6, 182, 212, 0.08); }
-        .prompt-item-title { font-weight: 600; color: #06b6d4; margin-bottom: 3px; }
-        .prompt-item-text { color: #999; font-size: 9px; }
-        .prompt-item-price { color: #10b981; font-weight: 700; font-size: 9px; margin-top: 3px; }
+        .filter-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 6px; 
+            margin-bottom: 12px; 
+        }
  
-        .filter-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-        .filter-label { font-size: 9px; color: #06b6d4; font-weight: 700; }
-        .filter-select { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(139, 92, 246, 0.25); border-radius: 4px; padding: 6px; color: #e8e8e8; font-size: 10px; }
+        .filter-label { 
+            font-size: 9px; 
+            color: #06b6d4; 
+            font-weight: 700; 
+        }
  
-        .prompts-marketplace { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; }
-        .prompt-card { background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 6px; padding: 8px; font-size: 9px; transition: all 0.3s; }
-        .prompt-card:active { border-color: #06b6d4; background: rgba(6, 182, 212, 0.1); }
+        .filter-select { 
+            background: rgba(255, 255, 255, 0.04); 
+            border: 1px solid rgba(139, 92, 246, 0.25); 
+            border-radius: 4px; 
+            padding: 6px; 
+            color: #e8e8e8; 
+            font-size: 10px; 
+        }
+ 
+        .prompts-marketplace { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            max-height: 250px; 
+            overflow-y: auto; 
+        }
+ 
+        .prompt-card { 
+            background: rgba(139, 92, 246, 0.08); 
+            border: 1px solid rgba(139, 92, 246, 0.2); 
+            border-radius: 6px; 
+            padding: 8px; 
+            font-size: 9px; 
+            transition: all 0.3s; 
+        }
+ 
+        .prompt-card:active { 
+            border-color: #06b6d4; 
+            background: rgba(6, 182, 212, 0.1); 
+        }
+ 
         .prompt-card-title { color: #06b6d4; font-weight: 700; margin-bottom: 3px; }
         .prompt-card-price { color: #10b981; font-weight: 700; }
         .prompt-card-category { color: #999; font-size: 8px; }
@@ -263,13 +407,24 @@
                 border-right: 1px solid rgba(139, 92, 246, 0.2);
             }
  
+            .canvas-area {
+                justify-content: center;
+                padding: 20px;
+            }
+ 
+            .canvas-display {
+                height: auto;
+                aspect-ratio: 4/3;
+                max-width: 700px;
+            }
+ 
+            .canvas-actions {
+                justify-content: center;
+            }
+ 
             .toolbar {
                 padding: 16px 20px;
                 gap: 12px;
-            }
- 
-            .canvas-area {
-                padding: 20px;
             }
  
             .logo-icon {
@@ -366,7 +521,7 @@
                     <button class="toolbar-btn" onclick="toggleHistory()">Historial</button>
                 </div>
                 <div style="display: flex; gap: 6px;">
-                    <button class="toolbar-btn" onclick="downloadImage()">⬇️ Descargar</button>
+                    <button class="toolbar-btn" onclick="downloadImage()">⬇️</button>
                     <button class="toolbar-btn" onclick="clearCanvas()">🗑️</button>
                 </div>
             </div>
@@ -374,9 +529,13 @@
             <div class="canvas-area">
                 <div class="canvas-display" id="canvasDisplay">
                     <div class="canvas-placeholder">
-                        <div style="font-size: 36px;">✨</div>
-                        <div>Escribe y haz clic GENERAR</div>
+                        <div>✨</div>
                     </div>
+                </div>
+ 
+                <div class="canvas-actions">
+                    <button onclick="generateImage()" style="background: linear-gradient(135deg, #06b6d4, #8b5cf6); color: white;">⚡ GENERAR</button>
+                    <button onclick="downloadImage()" style="background: rgba(139, 92, 246, 0.2); color: #06b6d4;">⬇️ DESCARGAR</button>
                 </div>
             </div>
         </div>
@@ -602,7 +761,7 @@
         }
  
         function clearCanvas() {
-            document.getElementById('canvasDisplay').innerHTML = '<div class="canvas-placeholder"><div style="font-size: 36px;">✨</div><div>Limpió</div></div>';
+            document.getElementById('canvasDisplay').innerHTML = '<div class="canvas-placeholder"><div>✨</div><div>Escribe tu idea</div></div>';
             state.currentImageUrl = null;
         }
  
