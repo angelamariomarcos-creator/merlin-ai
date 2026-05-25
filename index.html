@@ -16,7 +16,6 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
         .studio-container {
             display: grid;
@@ -177,45 +176,6 @@
         .canvas-placeholder { display: flex; flex-direction: column; align-items: center; gap: 16px; color: #555; text-align: center; padding: 40px; }
         .spinner { width: 48px; height: 48px; border: 3px solid rgba(6, 182, 212, 0.2); border-top-color: #06b6d4; border-radius: 50%; animation: spin 1s linear infinite; }
 
-        /* INPAINTING TOOLS */
-        .inpaint-controls {
-            background: rgba(26, 26, 46, 0.9);
-            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
-            padding: 12px 24px;
-            display: none;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .inpaint-controls.active { display: flex; }
-
-        .inpaint-btn {
-            padding: 6px 12px;
-            background: rgba(139, 92, 246, 0.1);
-            border: 1px solid rgba(139, 92, 246, 0.25);
-            color: #06b6d4;
-            border-radius: 6px;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .inpaint-btn.active {
-            background: #06b6d4;
-            color: black;
-            border-color: #06b6d4;
-        }
-
-        .inpaint-input {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(139, 92, 246, 0.25);
-            border-radius: 6px;
-            padding: 6px 12px;
-            color: #e8e8e8;
-            font-size: 11px;
-            max-width: 300px;
-        }
-
         /* SIDEBAR RIGHT */
         .sidebar-right { background: linear-gradient(180deg, #1a1a2e, #0f0f23); border-left: 1px solid rgba(139, 92, 246, 0.2); overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
         .sidebar-header { font-size: 11px; font-weight: 700; color: #06b6d4; padding-bottom: 12px; border-bottom: 1px solid rgba(139, 92, 246, 0.2); }
@@ -246,40 +206,18 @@
         .prompt-item:hover { border-color: #06b6d4; background: rgba(6, 182, 212, 0.08); }
         .prompt-item-title { font-weight: 600; color: #06b6d4; margin-bottom: 4px; }
         .prompt-item-text { color: #999; font-size: 10px; }
+        .prompt-item-price { color: #10b981; font-weight: 700; font-size: 10px; margin-top: 4px; }
 
-        .history-item {
-            background: rgba(139, 92, 246, 0.08);
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            border-radius: 8px;
-            padding: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 10px;
-        }
+        .filter-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+        .filter-label { font-size: 10px; color: #06b6d4; font-weight: 700; }
+        .filter-select { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(139, 92, 246, 0.25); border-radius: 6px; padding: 8px; color: #e8e8e8; font-size: 11px; }
 
-        .history-item:hover { border-color: #06b6d4; }
-        .history-item-thumb { width: 100%; height: 60px; background: #000; border-radius: 6px; margin-bottom: 8px; overflow: hidden; }
-        .history-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
-
-        .social-export {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .social-btn {
-            padding: 8px;
-            background: rgba(139, 92, 246, 0.1);
-            border: 1px solid rgba(139, 92, 246, 0.25);
-            color: #06b6d4;
-            border-radius: 6px;
-            font-size: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .social-btn:hover { border-color: #06b6d4; background: rgba(6, 182, 212, 0.08); }
+        .prompts-marketplace { display: flex; flex-direction: column; gap: 10px; max-height: 600px; overflow-y: auto; }
+        .prompt-card { background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 8px; padding: 10px; font-size: 10px; transition: all 0.3s; }
+        .prompt-card:hover { border-color: #06b6d4; background: rgba(6, 182, 212, 0.1); }
+        .prompt-card-title { color: #06b6d4; font-weight: 700; margin-bottom: 4px; }
+        .prompt-card-price { color: #10b981; font-weight: 700; }
+        .prompt-card-category { color: #999; font-size: 9px; }
 
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
@@ -318,7 +256,7 @@
 
             <div class="prompt-box">
                 <label class="prompt-label">Tu idea (Prompt)</label>
-                <textarea id="promptInput" class="prompt-textarea" placeholder="Escribe tu idea..."></textarea>
+                <textarea id="promptInput" class="prompt-textarea" placeholder="Escribe tu idea o usa un prompt del marketplace..."></textarea>
             </div>
 
             <div class="tabs-container">
@@ -374,20 +312,13 @@
         <div class="canvas-center">
             <div class="toolbar">
                 <div class="toolbar-left">
-                    <button class="toolbar-btn" onclick="loadPrompts()">Marketplace</button>
+                    <button class="toolbar-btn" onclick="loadMarketplace()">Marketplace (100+)</button>
                     <button class="toolbar-btn" onclick="toggleHistory()">Historial</button>
                 </div>
                 <div>
                     <button class="toolbar-btn" onclick="downloadImage()">⬇️ Descargar</button>
                     <button class="toolbar-btn" onclick="clearCanvas()">🗑️ Limpiar</button>
                 </div>
-            </div>
-
-            <div class="inpaint-controls" id="inpaintControls">
-                <button class="inpaint-btn active" onclick="setInpaintMode('brush', event)">🖌️ Pintar</button>
-                <button class="inpaint-btn" onclick="setInpaintMode('erase', event)">🗑️ Borrar</button>
-                <input type="text" id="inpaintPrompt" class="inpaint-input" placeholder="Qué cambiar en esta zona...">
-                <button class="inpaint-btn" onclick="submitInpaint()">Aplicar</button>
             </div>
 
             <div class="canvas-area">
@@ -403,36 +334,43 @@
         <!-- SIDEBAR RIGHT -->
         <div class="sidebar-right">
             <div>
+                <div class="sidebar-header">Marketplace - 100+ Prompts</div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Categoría</label>
+                    <select id="categoryFilter" class="filter-select" onchange="filterPrompts()">
+                        <option value="">Todas</option>
+                        <option value="Fantasy">Fantasy</option>
+                        <option value="Sci-Fi">Sci-Fi</option>
+                        <option value="Art">Art & Design</option>
+                        <option value="Nature">Nature</option>
+                        <option value="Character">Character Design</option>
+                        <option value="Architecture">Architecture</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Tier</label>
+                    <select id="tierFilter" class="filter-select" onchange="filterPrompts()">
+                        <option value="">Todos</option>
+                        <option value="standard">Standard ($0.99)</option>
+                        <option value="premium">Premium ($1.49+)</option>
+                    </select>
+                </div>
+
+                <div id="promptsMarketplace" class="prompts-marketplace">
+                    <div style="text-align: center; color: #666; padding: 20px;">Cargando prompts...</div>
+                </div>
+            </div>
+
+            <div>
                 <div class="sidebar-header">Paleta de Colores</div>
                 <div class="color-palette" id="colorPalette"></div>
-            </div>
-
-            <div>
-                <div class="sidebar-header">Exportar a Redes</div>
-                <div class="social-export">
-                    <button class="social-btn" onclick="exportSocial('instagram')">📸 Instagram</button>
-                    <button class="social-btn" onclick="exportSocial('tiktok')">🎬 TikTok</button>
-                    <button class="social-btn" onclick="exportSocial('linkedin')">💼 LinkedIn</button>
-                    <button class="social-btn" onclick="exportSocial('twitter')">𝕏 X/Twitter</button>
-                </div>
-            </div>
-
-            <div>
-                <div class="sidebar-header">Favoritos</div>
-                <div class="prompts-list" id="favsList">
-                    <div style="color: #666; font-size: 11px;">Sin favoritos guardados</div>
-                </div>
-            </div>
-
-            <div id="historySection" style="display: none;">
-                <div class="sidebar-header">Historial Local</div>
-                <div id="historyList" style="display: flex; flex-direction: column; gap: 12px;"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // AUDIO CONTEXT
         let audioContext = null;
         let isSoundEnabled = true;
         const creativeIdeas = [
@@ -453,12 +391,11 @@
             selectedStyle: 'Ninguno',
             currentImageUrl: null,
             isGenerating: false,
-            inpaintMode: false,
+            allPrompts: [],
             favorites: JSON.parse(localStorage.getItem('merlinFavorites')) || [],
             history: JSON.parse(localStorage.getItem('merlinHistory')) || []
         };
 
-        // AUDIO
         function toggleSound() {
             isSoundEnabled = !isSoundEnabled;
             document.getElementById('soundToggle').textContent = isSoundEnabled ? '🔊' : '🔇';
@@ -494,7 +431,6 @@
             });
         }
 
-        // PÁNICO CREATIVO
         function panicCreative() {
             playSound('click');
             const ideas = [];
@@ -507,7 +443,6 @@
             showStatus('3 Ideas aleatorias generadas! 🎲', 'success');
         }
 
-        // TABS
         function switchTab(tabName, evt) {
             document.querySelectorAll('.controls-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -529,74 +464,71 @@
             playSound('click');
         }
 
-        // INPAINTING
         function toggleInpaint() {
-            const controls = document.getElementById('inpaintControls');
-            state.inpaintMode = !state.inpaintMode;
-            controls.classList.toggle('active');
-            playSound('click');
+            showStatus('Inpainting: Primero genera una imagen', 'info');
         }
 
-        function setInpaintMode(mode, evt) {
-            document.querySelectorAll('.inpaint-btn').forEach(b => b.classList.remove('active'));
-            if (evt?.currentTarget) evt.currentTarget.classList.add('active');
-        }
-
-        async function submitInpaint() {
-            if (!state.currentImageUrl) {
-                showStatus('Primero genera una imagen', 'error');
-                return;
-            }
-
-            const prompt = document.getElementById('inpaintPrompt').value.trim();
-            if (!prompt) {
-                showStatus('Describe qué cambiar', 'error');
-                return;
-            }
-
-            playSound('generate');
-            showStatus('Aplicando inpainting...', 'info');
-
-            try {
-                const response = await fetch('/inpaint', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        imageUrl: state.currentImageUrl,
-                        prompt: prompt
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    state.currentImageUrl = data.imageUrl;
-                    document.getElementById('canvasDisplay').innerHTML = `<img src="${data.imageUrl}" alt="Inpainted">`;
-                    playSound('success');
-                    showStatus('Inpainting aplicado!', 'success');
-                    document.getElementById('inpaintPrompt').value = '';
-                } else {
-                    throw new Error(data.error);
-                }
-            } catch (error) {
-                showStatus('Error: ' + error.message, 'error');
-            }
-        }
-
-        // MARKETPLACE
-        async function loadPrompts() {
+        // CARGAR MARKETPLACE AUTOMÁTICO AL ABRIR
+        async function loadMarketplace() {
             playSound('click');
             showStatus('Cargando marketplace...', 'info');
+            
             try {
                 const response = await fetch('/marketplace/prompts');
                 const data = await response.json();
                 
                 if (data.success) {
-                    showStatus('Marketplace actualizado', 'success');
+                    state.allPrompts = data.prompts;
+                    renderPrompts(data.prompts);
+                    showStatus(`✅ Marketplace: ${data.total} prompts disponibles`, 'success');
+                } else {
+                    throw new Error(data.error);
                 }
             } catch (error) {
-                showStatus('Error marketplace', 'error');
+                showStatus('Error cargando marketplace: ' + error.message, 'error');
             }
+        }
+
+        // RENDERIZAR PROMPTS
+        function renderPrompts(prompts) {
+            const container = document.getElementById('promptsMarketplace');
+            
+            if (prompts.length === 0) {
+                container.innerHTML = '<div style="color: #666; padding: 20px; text-align: center;">No hay prompts que coincidan</div>';
+                return;
+            }
+
+            container.innerHTML = prompts.map(p => `
+                <div class="prompt-card">
+                    <div class="prompt-card-title">${p.title}</div>
+                    <div class="prompt-card-category">${p.category}</div>
+                    <div class="prompt-card-price">$${p.price.toFixed(2)}</div>
+                    <div style="margin-top: 8px; font-size: 9px; color: #999;">"${p.prompt.substring(0, 50)}..."</div>
+                    <div style="margin-top: 8px; display: flex; gap: 4px;">
+                        <button style="flex: 1; padding: 4px; background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 4px; color: #06b6d4; font-size: 9px; cursor: pointer;" onclick="usePrompt('${p.id}', \`${p.prompt.replace(/`/g, '\\`')}\`)">Usar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // USAR PROMPT
+        function usePrompt(promptId, promptText) {
+            document.getElementById('promptInput').value = promptText;
+            showStatus('✅ Prompt cargado! Haz clic en GENERAR', 'success');
+            playSound('success');
+        }
+
+        // FILTRAR
+        function filterPrompts() {
+            const category = document.getElementById('categoryFilter').value;
+            const tier = document.getElementById('tierFilter').value;
+
+            let filtered = state.allPrompts;
+
+            if (category) filtered = filtered.filter(p => p.category === category);
+            if (tier) filtered = filtered.filter(p => p.tier === tier);
+
+            renderPrompts(filtered);
         }
 
         // GENERAR IMAGEN
@@ -635,7 +567,7 @@
                     state.currentImageUrl = data.imageUrl;
                     document.getElementById('canvasDisplay').innerHTML = `<img src="${data.imageUrl}" alt="Generated">`;
                     playSound('success');
-                    showStatus('Imagen generada!', 'success');
+                    showStatus('¡Imagen generada!', 'success');
 
                     // Guardar historial
                     state.history.unshift({
@@ -644,9 +576,6 @@
                         timestamp: new Date().toLocaleTimeString('es-ES')
                     });
                     localStorage.setItem('merlinHistory', JSON.stringify(state.history.slice(0, 20)));
-
-                    // Extraer colores
-                    extractColorPalette(data.imageUrl);
                 } else {
                     throw new Error(data.error);
                 }
@@ -659,82 +588,12 @@
             }
         }
 
-        // COLOR PALETTE EXTRACTOR
-        function extractColorPalette(imageUrl) {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const img = new Image();
-
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-                canvas.width = 100;
-                canvas.height = 100;
-                ctx.drawImage(img, 0, 0, 100, 100);
-
-                const imageData = ctx.getImageData(0, 0, 100, 100);
-                const colors = {};
-
-                for (let i = 0; i < imageData.data.length; i += 4) {
-                    const r = imageData.data[i];
-                    const g = imageData.data[i + 1];
-                    const b = imageData.data[i + 2];
-                    const hex = `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
-                    colors[hex] = (colors[hex] || 0) + 1;
-                }
-
-                const topColors = Object.entries(colors)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 5)
-                    .map(c => c[0]);
-
-                const palette = document.getElementById('colorPalette');
-                palette.innerHTML = topColors.map(color => 
-                    `<div class="color-swatch" style="background: ${color};" title="${color}"></div>`
-                ).join('');
-            };
-            img.src = imageUrl;
-        }
-
-        // SOCIAL EXPORT
-        function exportSocial(platform) {
-            if (!state.currentImageUrl) {
-                showStatus('No hay imagen para exportar', 'error');
+        function toggleHistory() {
+            if (state.history.length === 0) {
+                showStatus('No hay historial aún. Genera algunas imágenes primero.', 'info');
                 return;
             }
-
-            const sizes = {
-                instagram: '1080x1080',
-                tiktok: '1080x1920',
-                linkedin: '1200x627',
-                twitter: '1200x675'
-            };
-
-            const link = document.createElement('a');
-            link.href = state.currentImageUrl;
-            link.download = `merlin-${platform}-${Date.now()}.png`;
-            link.click();
-
-            playSound('success');
-            showStatus(`Descargado para ${platform} (${sizes[platform]})`, 'success');
-        }
-
-        // HISTORIAL
-        function toggleHistory() {
-            const section = document.getElementById('historySection');
-            section.style.display = section.style.display === 'none' ? 'flex' : 'none';
-
-            if (section.style.display === 'flex') {
-                const list = document.getElementById('historyList');
-                list.innerHTML = state.history.map(h => `
-                    <div class="history-item">
-                        <div class="history-item-thumb">
-                            <img src="${h.imageUrl}" alt="Historial">
-                        </div>
-                        <div style="font-size: 10px; color: #999;">${h.prompt.substring(0, 40)}...</div>
-                        <div style="font-size: 9px; color: #666;">${h.timestamp}</div>
-                    </div>
-                `).join('');
-            }
+            showStatus(`📊 Historial: ${state.history.length} generaciones`, 'info');
         }
 
         function downloadImage() {
@@ -749,7 +608,7 @@
             link.click();
 
             playSound('success');
-            showStatus('Descargada!', 'success');
+            showStatus('¡Descargada!', 'success');
         }
 
         function clearCanvas() {
@@ -767,9 +626,10 @@
             }
         }
 
-        // INIT
+        // INIT - CARGAR MARKETPLACE AL ABRIR LA PÁGINA
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('✅ Merlin AI - Prioridad 1 Completa');
+            console.log('✅ Merlin AI Iniciado');
+            loadMarketplace(); // AUTO-CARGA LOS PROMPTS
         });
     </script>
 </body>
