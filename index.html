@@ -1,731 +1,781 @@
-// =============================================
-// MERLIN AI - SERVER v2.0
-// Stripe + Creator Panel + Analytics + FAL.AI
-// =============================================
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const crypto = require('crypto');
-
-const app = express();
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
-
-// =============================================
-// CONFIG
-// =============================================
-const PORT = process.env.PORT || 3000;
-const FAL_KEY = process.env.FAL_KEY || '';
-const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY || '';
-const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
-const APP_URL = process.env.APP_URL || 'https://merlin-ai-production-1065.up.railway.app';
-const GA_MEASUREMENT_ID = process.env.GA_MEASUREMENT_ID || '';
-const GA_API_SECRET = process.env.GA_API_SECRET || '';
-
-let stripe = null;
-if (STRIPE_SECRET) {
-  try { stripe = require('stripe')(STRIPE_SECRET); console.log('✅ Stripe inicializado'); }
-  catch(e) { console.log('⚠️ Stripe no disponible:', e.message); }
-}
-
-// =============================================
-// IN-MEMORY STORAGE (→ sustituir por DB en prod)
-// =============================================
-const analytics = {
-  visits: 0,
-  pageViews: {},
-  generations: 0,
-  purchases: 0,
-  revenue: 0,
-  events: [],
-  startTime: Date.now()
-};
-
-const creatorPrompts = []; // Prompts subidos por creadores
-const purchases = [];      // Historial de compras
-
-// =============================================
-// MARKETPLACE - 100+ PROMPTS
-// =============================================
-const MARKETPLACE_PROMPTS = [
-  { id:1, name:'Dragon Emperor', category:'Fantasy', tier:'free', price:0, desc:'Majestic dragon emperor on a crystal throne, golden scales, epic lighting', creator:'merlin_official', rating:4.9, uses:1240 },
-  { id:2, name:'Neon Tokyo 2099', category:'Sci-Fi', tier:'free', price:0, desc:'Futuristic Tokyo street at night, neon rain, cyberpunk atmosphere, flying cars overhead', creator:'merlin_official', rating:4.8, uses:980 },
-  { id:3, name:'Oil Portrait Master', category:'Art', tier:'premium', price:1.99, desc:'Classical oil portrait with Rembrandt lighting, rich textures, museum quality, fine art style', creator:'artmaster_pro', rating:5.0, uses:450 },
-  { id:4, name:'Forest Spirit', category:'Nature', tier:'free', price:0, desc:'Ancient forest spirit emerging from old oak tree, mystical fog, bioluminescent particles', creator:'merlin_official', rating:4.7, uses:820 },
-  { id:5, name:'Samurai Warrior', category:'Character', tier:'premium', price:0.99, desc:'Samurai warrior in full lacquered armor at sunrise, cherry blossoms, cinematic epic scale', creator:'warrior_prompts', rating:4.9, uses:1100 },
-  { id:6, name:'Gothic Cathedral', category:'Architecture', tier:'free', price:0, desc:'Gothic cathedral exterior at twilight, dramatic storm clouds, architectural detail, gargoyles', creator:'merlin_official', rating:4.6, uses:670 },
-  { id:7, name:'Mermaid Queen', category:'Fantasy', tier:'premium', price:1.49, desc:'Mermaid queen in underwater palace, bioluminescent sea life, coral throne, ethereal beauty', creator:'fantasy_lab', rating:4.9, uses:890 },
-  { id:8, name:'Mars Colony 2150', category:'Sci-Fi', tier:'premium', price:1.99, desc:'Human colony on Mars at sunset, red dust storm approaching, glass domes, terraforming', creator:'scifi_studio', rating:4.8, uses:560 },
-  { id:9, name:'Impressionist Garden', category:'Art', tier:'free', price:0, desc:'Garden scene in Monet impressionist style, water lilies, dappled light through willow trees', creator:'merlin_official', rating:4.7, uses:730 },
-  { id:10, name:'Aurora Mountain', category:'Nature', tier:'free', price:0, desc:'Snow-capped mountains under northern lights aurora borealis, perfect reflection in frozen lake', creator:'merlin_official', rating:4.9, uses:1350 },
-  { id:11, name:'Steampunk Inventor', category:'Character', tier:'premium', price:0.99, desc:'Victorian steampunk inventor surrounded by gears, gadgets, blueprints, warm gaslight', creator:'steam_works', rating:4.8, uses:710 },
-  { id:12, name:'Floating Islands', category:'Architecture', tier:'premium', price:1.49, desc:'Ancient floating sky islands with waterfalls cascading into clouds, ruins and temples', creator:'world_builder', rating:4.9, uses:1020 },
-  { id:13, name:'Phoenix Rising', category:'Fantasy', tier:'free', price:0, desc:'Majestic phoenix rising from white-hot ashes, flames of gold and deep orange, stormy epic sky', creator:'merlin_official', rating:4.8, uses:940 },
-  { id:14, name:'Space Station', category:'Sci-Fi', tier:'free', price:0, desc:'Inside futuristic deep-space station, blue Earth visible through panoramic window, zero gravity', creator:'merlin_official', rating:4.6, uses:480 },
-  { id:15, name:'Baroque Portrait', category:'Art', tier:'premium', price:1.99, desc:'Baroque portrait with rich velvet, pearl jewels, candlelight, Caravaggio dramatic shadows', creator:'artmaster_pro', rating:5.0, uses:320 },
-  { id:16, name:'Volcano Sunset', category:'Nature', tier:'free', price:0, desc:'Active volcano erupting at sunset, glowing lava flow into ocean, dramatic orange sky', creator:'merlin_official', rating:4.7, uses:610 },
-  { id:17, name:'Cyber Warrior', category:'Character', tier:'premium', price:1.49, desc:'Elite female cyber-soldier with holographic nano-armor, rain-soaked neon megacity backdrop', creator:'cyber_designs', rating:4.9, uses:1290 },
-  { id:18, name:'Ancient Library', category:'Architecture', tier:'free', price:0, desc:'Infinite magical library, floating illuminated books, spiral staircases, warm amber light', creator:'merlin_official', rating:4.8, uses:870 },
-  { id:19, name:'Ice Dragon', category:'Fantasy', tier:'premium', price:0.99, desc:'Ice dragon in frozen arctic tundra, crystalline iridescent scales, visible frozen breath', creator:'fantasy_lab', rating:4.7, uses:760 },
-  { id:20, name:'Alien Planet', category:'Sci-Fi', tier:'premium', price:1.99, desc:'Alien planet with binary moons, exotic purple flora, bioluminescent plants, lone explorer silhouette', creator:'scifi_studio', rating:4.9, uses:830 },
-];
-
-// Generar hasta 100 prompts
-const CATS = ['Fantasy','Sci-Fi','Art','Nature','Character','Architecture'];
-const DESCS = {
-  Fantasy: 'mystical fantasy world, ancient magic, ethereal atmosphere, epic scale, detailed environment',
-  'Sci-Fi': 'futuristic sci-fi setting, advanced AI technology, dramatic space composition, cinematic',
-  Art: 'artistic masterpiece, expressive brushwork, rich texture, museum quality fine art',
-  Nature: 'breathtaking natural landscape, perfect golden hour lighting, photorealistic, 8K detail',
-  Character: 'compelling character portrait, cinematic depth of field, dramatic three-point lighting',
-  Architecture: 'extraordinary architectural structure, detailed craftsmanship, atmospheric perspective'
-};
-const CREATORS = ['creative_studio','prompt_lab','visual_ai','artisan_prompts','design_forge'];
-const TIERS = ['free','premium'];
-const PREMIUM_PRICES = [0.99, 1.49, 1.99];
-
-for (let i = 21; i <= 100; i++) {
-  const cat = CATS[i % 6];
-  const tier = i % 3 === 0 ? 'premium' : 'free';
-  MARKETPLACE_PROMPTS.push({
-    id: i,
-    name: `${cat} Vision #${i}`,
-    category: cat,
-    tier,
-    price: tier === 'premium' ? PREMIUM_PRICES[i % 3] : 0,
-    desc: `${DESCS[cat]}, composition #${i}, masterpiece quality`,
-    creator: CREATORS[i % 5],
-    rating: parseFloat((4.5 + Math.random() * 0.5).toFixed(1)),
-    uses: Math.floor(Math.random() * 900) + 100
-  });
-}
-
-// =============================================
-// MIDDLEWARE: Analytics tracking
-// =============================================
-app.use((req, res, next) => {
-  if (!req.path.startsWith('/health') && !req.path.startsWith('/favicon')) {
-    analytics.visits++;
-    analytics.pageViews[req.path] = (analytics.pageViews[req.path] || 0) + 1;
-    analytics.events.push({ type: 'pageview', path: req.path, ts: Date.now(), ip: req.ip?.slice(-8) });
-    if (analytics.events.length > 1000) analytics.events = analytics.events.slice(-500);
-  }
-  next();
-});
-
-// =============================================
-// STATIC FILES
-// =============================================
-app.use(express.static(path.join(__dirname, 'public')));
-
-// =============================================
-// LANDING PAGE (/)
-// =============================================
-app.get('/', (req, res) => {
-  res.send(`<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Merlin AI - Generador de Imágenes con IA</title>
-<!-- Google tag (gtag.js) -->
-${GA_MEASUREMENT_ID ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${GA_MEASUREMENT_ID}');</script>` : ''}
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;600;700&display=swap');
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Raleway',sans-serif;background:#0a0a14;color:#e2e8f0;overflow-x:hidden}
-.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;position:relative}
-.hero::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 80% at 50% -20%,rgba(124,58,237,.3),transparent),radial-gradient(ellipse 60% 60% at 80% 80%,rgba(6,182,212,.15),transparent);pointer-events:none}
-h1{font-family:'Cinzel',serif;font-size:clamp(2.5rem,8vw,5rem);font-weight:900;background:linear-gradient(135deg,#f59e0b,#a855f7,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;margin-bottom:8px}
-.subtitle{font-size:clamp(1rem,3vw,1.4rem);color:#94a3b8;margin-bottom:40px;font-weight:300}
-.cta-btn{display:inline-block;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;text-decoration:none;padding:18px 48px;border-radius:50px;font-family:'Cinzel',serif;font-size:1.2rem;font-weight:700;letter-spacing:1px;transition:all .3s;box-shadow:0 8px 32px rgba(124,58,237,.4);margin-bottom:60px}
-.cta-btn:hover{transform:translateY(-3px);box-shadow:0 16px 48px rgba(124,58,237,.6)}
-.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;max-width:1100px;width:100%;padding:0 20px}
-.feature-card{background:rgba(19,19,42,.8);border:1px solid #2a2a55;border-radius:16px;padding:28px;text-align:left;transition:all .3s;backdrop-filter:blur(10px)}
-.feature-card:hover{border-color:#7c3aed;transform:translateY(-4px);box-shadow:0 12px 40px rgba(124,58,237,.2)}
-.feature-icon{font-size:2.5rem;margin-bottom:14px;display:block}
-.feature-title{font-family:'Cinzel',serif;font-size:1rem;font-weight:700;color:#a855f7;margin-bottom:8px}
-.feature-desc{color:#94a3b8;font-size:.9rem;line-height:1.6}
-.badge-new{display:inline-block;background:rgba(245,158,11,.2);color:#f59e0b;border:1px solid #f59e0b;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:700;letter-spacing:.5px;margin-left:8px;vertical-align:middle}
-footer{text-align:center;padding:40px 20px;color:#475569;font-size:.85rem;border-top:1px solid #1a1a35;margin-top:60px}
-.stats-bar{display:flex;gap:40px;justify-content:center;flex-wrap:wrap;padding:30px 20px;background:rgba(10,10,20,.6);border-top:1px solid #2a2a55;border-bottom:1px solid #2a2a55;margin:40px 0;width:100%}
-.stat{text-align:center}
-.stat-number{font-family:'Cinzel',serif;font-size:2rem;font-weight:700;background:linear-gradient(135deg,#f59e0b,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.stat-label{color:#94a3b8;font-size:.8rem;margin-top:4px}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Merlin AI - Generador de Imágenes</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow-x: hidden; }
+        
+        body {
+            background: #0a0a0a;
+            color: #e8e8e8;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        .studio-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0;
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* MOBILE FIRST */
+        .sidebar-left {
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f0f23 100%);
+            border-right: 1px solid rgba(139, 92, 246, 0.2);
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            animation: slideIn 0.5s ease;
+            height: auto;
+            max-height: 45vh;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+            flex-shrink: 0;
+        }
+
+        .logo-text h1 { font-size: 16px; font-weight: 700; color: #06b6d4; }
+        .logo-text p { font-size: 9px; color: #666; }
+
+        .sound-toggle {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #06b6d4;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 50;
+        }
+
+        .sound-toggle:active { border-color: #06b6d4; }
+
+        .prompt-box { display: flex; flex-direction: column; gap: 8px; }
+        .prompt-label { font-size: 10px; font-weight: 700; color: #06b6d4; }
+        .prompt-textarea {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1.5px solid rgba(139, 92, 246, 0.25);
+            border-radius: 8px;
+            padding: 10px;
+            color: #e8e8e8;
+            font-size: 12px;
+            min-height: 70px;
+            resize: vertical;
+            font-family: inherit;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .prompt-textarea:focus {
+            outline: none;
+            border-color: #06b6d4;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .quick-btn {
+            flex: 1;
+            padding: 8px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            color: #06b6d4;
+            border-radius: 6px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .quick-btn:active {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: #06b6d4;
+        }
+
+        .tabs-container { display: flex; gap: 6px; border-bottom: 1px solid rgba(139, 92, 246, 0.2); padding-bottom: 8px; }
+        .tab-btn {
+            padding: 6px 10px; background: none; border: none; color: #666; cursor: pointer;
+            font-size: 10px; font-weight: 700; border-bottom: 2px solid transparent; transition: all 0.3s;
+        }
+        .tab-btn.active { color: #06b6d4; border-bottom-color: #06b6d4; }
+
+        .controls-panel { display: none; flex-direction: column; gap: 12px; }
+        .controls-panel.active { display: flex; animation: fadeIn 0.3s; }
+        .control-group { display: flex; flex-direction: column; gap: 8px; }
+        .control-label { font-size: 9px; font-weight: 700; color: #999; }
+
+        .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .option-btn {
+            padding: 8px 10px; background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: 6px; color: #999; font-size: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+        }
+        .option-btn:active { border-color: #06b6d4; color: #06b6d4; }
+        .option-btn.active { background: linear-gradient(135deg, #06b6d4, #8b5cf6); color: white; border-color: transparent; }
+
+        .slider { width: 100%; height: 4px; border-radius: 2px; background: rgba(139, 92, 246, 0.15); outline: none; cursor: pointer; }
+        .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #06b6d4; }
+
+        .generate-btn {
+            width: 100%; padding: 12px; background: linear-gradient(135deg, #06b6d4, #8b5cf6); border: none;
+            border-radius: 8px; color: white; font-weight: 700; font-size: 12px; cursor: pointer; transition: all 0.3s;
+            margin-top: 6px;
+        }
+
+        .generate-btn:active:not(.loading) { transform: scale(0.98); }
+        .generate-btn.loading { opacity: 0.7; cursor: not-allowed; }
+
+        .status-message { padding: 10px; border-radius: 6px; font-size: 11px; margin-top: 6px; display: none; }
+        .status-message.show { display: block; animation: fadeIn 0.3s; }
+        .status-message.success { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981; }
+        .status-message.error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; }
+        .status-message.info { background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3); color: #06b6d4; }
+
+        /* CANVAS CENTER */
+        .canvas-center { 
+            display: flex; 
+            flex-direction: column; 
+            background: #0a0a0a; 
+            overflow: hidden; 
+            flex: 1;
+            min-height: 0;
+        }
+
+        .toolbar { 
+            background: rgba(26, 26, 46, 0.8); 
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2); 
+            padding: 12px; 
+            display: flex; 
+            justify-content: space-between; 
+            gap: 8px; 
+            flex-wrap: wrap; 
+        }
+
+        .toolbar-left { display: flex; gap: 6px; flex-wrap: wrap; }
+        .toolbar-btn { 
+            padding: 6px 10px; 
+            background: rgba(139, 92, 246, 0.08); 
+            border: 1px solid rgba(139, 92, 246, 0.25); 
+            border-radius: 6px; 
+            color: #999; 
+            font-size: 10px; 
+            cursor: pointer; 
+            transition: all 0.3s; 
+            white-space: nowrap; 
+        }
+        .toolbar-btn:active { border-color: #06b6d4; color: #06b6d4; }
+
+        .canvas-area { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: flex-start; 
+            padding: 12px; 
+            overflow-y: auto; 
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.5), rgba(10, 10, 26, 0.5)); 
+            gap: 12px;
+            min-height: 0;
+        }
+
+        .canvas-display { 
+            width: 100%; 
+            height: 250px;
+            background: rgba(139, 92, 246, 0.05); 
+            border: 2px dashed rgba(6, 182, 212, 0.3); 
+            border-radius: 12px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            overflow: hidden; 
+            position: relative; 
+            flex-shrink: 0;
+        }
+
+        .canvas-display img { width: 100%; height: 100%; object-fit: cover; }
+
+        .canvas-placeholder { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 8px; 
+            color: #555; 
+            text-align: center; 
+            padding: 12px; 
+        }
+
+        .canvas-placeholder div:first-child { font-size: 32px; }
+        .canvas-placeholder div:last-child { font-size: 12px; }
+
+        .spinner { 
+            width: 36px; 
+            height: 36px; 
+            border: 3px solid rgba(6, 182, 212, 0.2); 
+            border-top-color: #06b6d4; 
+            border-radius: 50%; 
+            animation: spin 1s linear infinite; 
+        }
+
+        .canvas-actions {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            flex-wrap: wrap;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .canvas-actions button {
+            flex: 1;
+            min-width: 90px;
+            padding: 14px;
+            background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .canvas-actions button:active {
+            transform: scale(0.98);
+        }
+
+        /* SIDEBAR RIGHT */
+        .sidebar-right { 
+            background: linear-gradient(180deg, #1a1a2e, #0f0f23); 
+            border-top: 1px solid rgba(139, 92, 246, 0.2); 
+            overflow-y: auto; 
+            padding: 16px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 16px; 
+            height: auto; 
+            max-height: 35vh; 
+        }
+
+        .sidebar-header { 
+            font-size: 10px; 
+            font-weight: 700; 
+            color: #06b6d4; 
+            padding-bottom: 10px; 
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2); 
+        }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .color-swatch {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .color-swatch:active {
+            border-color: #06b6d4;
+        }
+
+        .filter-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 6px; 
+            margin-bottom: 12px; 
+        }
+
+        .filter-label { 
+            font-size: 9px; 
+            color: #06b6d4; 
+            font-weight: 700; 
+        }
+
+        .filter-select { 
+            background: rgba(255, 255, 255, 0.04); 
+            border: 1px solid rgba(139, 92, 246, 0.25); 
+            border-radius: 4px; 
+            padding: 6px; 
+            color: #e8e8e8; 
+            font-size: 10px; 
+        }
+
+        .prompts-marketplace { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            max-height: 250px; 
+            overflow-y: auto; 
+        }
+
+        .prompt-card { 
+            background: rgba(139, 92, 246, 0.08); 
+            border: 1px solid rgba(139, 92, 246, 0.2); 
+            border-radius: 6px; 
+            padding: 8px; 
+            font-size: 9px; 
+            transition: all 0.3s; 
+        }
+
+        .prompt-card:active { 
+            border-color: #06b6d4; 
+            background: rgba(6, 182, 212, 0.1); 
+        }
+
+        .prompt-card-title { color: #06b6d4; font-weight: 700; margin-bottom: 3px; }
+        .prompt-card-price { color: #10b981; font-weight: 700; }
+        .prompt-card-category { color: #999; font-size: 8px; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
+        ::-webkit-scrollbar-thumb { background: rgba(6, 182, 212, 0.3); border-radius: 3px; }
+
+        /* TABLET Y DESKTOP */
+        @media (min-width: 768px) {
+            .studio-container {
+                grid-template-columns: 280px 1fr 320px;
+                gap: 0;
+            }
+
+            .sidebar-left {
+                max-height: 100vh;
+                height: 100vh;
+                border-bottom: none;
+                padding: 20px;
+                gap: 20px;
+            }
+
+            .sidebar-right {
+                max-height: 100vh;
+                height: 100vh;
+                border-top: none;
+                border-left: 1px solid rgba(139, 92, 246, 0.2);
+                padding: 20px;
+                gap: 18px;
+            }
+
+            .canvas-center {
+                border-left: 1px solid rgba(139, 92, 246, 0.2);
+                border-right: 1px solid rgba(139, 92, 246, 0.2);
+            }
+
+            .canvas-area {
+                justify-content: center;
+                padding: 20px;
+            }
+
+            .canvas-display {
+                height: auto;
+                aspect-ratio: 4/3;
+                max-width: 700px;
+            }
+
+            .canvas-actions {
+                justify-content: center;
+            }
+
+            .toolbar {
+                padding: 16px 20px;
+                gap: 12px;
+            }
+
+            .logo-icon {
+                width: 44px;
+                height: 44px;
+                font-size: 22px;
+            }
+
+            .logo-text h1 { font-size: 18px; }
+            .logo-text p { font-size: 10px; }
+
+            .prompt-textarea { min-height: 100px; font-size: 13px; }
+            .prompt-label { font-size: 11px; }
+            .quick-btn { font-size: 11px; }
+            .generate-btn { font-size: 13px; padding: 14px; }
+        }
+
+        @media (max-width: 767px) {
+            .sidebar-right { display: none; }
+        }
+    </style>
 </head>
 <body>
-<section class="hero">
-  <div style="font-size:5rem;margin-bottom:20px;filter:drop-shadow(0 0 30px rgba(124,58,237,.6))">🧙‍♂️</div>
-  <h1>MERLIN AI</h1>
-  <p class="subtitle">Generador de Imágenes con IA · Crea Magia Visual</p>
-  <a href="/app" class="cta-btn">⚡ Crear Imágenes Gratis</a>
-  <div class="features">
-    <div class="feature-card"><span class="feature-icon">🎨</span><div class="feature-title">6 Estilos Artísticos</div><div class="feature-desc">Pixar, Cómic, Fotorrealismo, Acuarela, Cyberpunk y Dark Fantasy. Elige tu estética.</div></div>
-    <div class="feature-card"><span class="feature-icon">⚡</span><div class="feature-title">Ultra Rápido</div><div class="feature-desc">Imágenes generadas en menos de 60 segundos con FAL.AI FLUX Dev, el modelo más avanzado.</div></div>
-    <div class="feature-card"><span class="feature-icon">🛒</span><div class="feature-title">Marketplace de Prompts<span class="badge-new">NUEVO</span></div><div class="feature-desc">100+ prompts profesionales. Gratis y Premium. Carga cualquiera con un click y genera.</div></div>
-    <div class="feature-card"><span class="feature-icon">📤</span><div class="feature-title">Export Social</div><div class="feature-desc">Exporta optimizado para Instagram, TikTok, LinkedIn y X/Twitter con tu marca.</div></div>
-    <div class="feature-card"><span class="feature-icon">🎲</span><div class="feature-title">Pánico Creativo</div><div class="feature-desc">¿Sin ideas? 3 ideas aleatorias generadas al instante para desbloquear tu creatividad.</div></div>
-    <div class="feature-card"><span class="feature-icon">💰</span><div class="feature-title">Gana Dinero<span class="badge-new">PRÓXIMO</span></div><div class="feature-desc">Sube tus prompts al Marketplace y gana el 80% de cada venta automáticamente.</div></div>
-    <div class="feature-card"><span class="feature-icon">🎛️</span><div class="feature-title">Control Avanzado</div><div class="feature-desc">Ajusta pasos, guidance scale, seed y prompt negativo para resultados perfectos.</div></div>
-    <div class="feature-card"><span class="feature-icon">🕐</span><div class="feature-title">Historial & Favoritos</div><div class="feature-desc">Todas tus creaciones guardadas localmente. Accede y descarga cuando quieras.</div></div>
-    <div class="feature-card"><span class="feature-icon">📱</span><div class="feature-title">100% Responsive</div><div class="feature-desc">Funciona perfecto en móvil, tablet y desktop. Sin instalación, directo en tu navegador.</div></div>
-  </div>
-</section>
-<div class="stats-bar">
-  <div class="stat"><div class="stat-number">100+</div><div class="stat-label">Prompts Premium</div></div>
-  <div class="stat"><div class="stat-number">6</div><div class="stat-label">Estilos Artísticos</div></div>
-  <div class="stat"><div class="stat-number">∞</div><div class="stat-label">Posibilidades</div></div>
-  <div class="stat"><div class="stat-number">FREE</div><div class="stat-label">Para empezar</div></div>
-</div>
-<footer>
-  <p>🧙 <strong>Merlin AI</strong> · Powered by FAL.AI FLUX Dev + Stripe Payments</p>
-  <p style="margin-top:8px">© 2026 Merlin AI · Hecho con magia y código ✨</p>
-  <p style="margin-top:12px"><a href="/app" style="color:#a855f7;text-decoration:none">→ Abrir App</a> · <a href="/creator" style="color:#f59e0b;text-decoration:none">→ Panel Creador</a> · <a href="/admin" style="color:#94a3b8;text-decoration:none">Admin</a></p>
-</footer>
+    <button class="sound-toggle" id="soundToggle" onclick="toggleSound()">🔊</button>
+
+    <div class="studio-container">
+        
+        <!-- SIDEBAR LEFT -->
+        <div class="sidebar-left">
+            <div class="logo-section">
+                <div class="logo-icon">✨</div>
+                <div class="logo-text">
+                    <h1>MERLIN AI</h1>
+                    <p>Generador IA</p>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <button class="quick-btn" onclick="panicCreative()" title="3 ideas">🎲 Pánico</button>
+                <button class="quick-btn" onclick="toggleInpaint()" title="Editar">✏️ Inpaint</button>
+            </div>
+
+            <div class="prompt-box">
+                <label class="prompt-label">Tu idea</label>
+                <textarea id="promptInput" class="prompt-textarea" placeholder="Escribe tu idea..."></textarea>
+            </div>
+
+            <div class="tabs-container">
+                <button class="tab-btn active" onclick="switchTab('camera', event)">Cámara</button>
+                <button class="tab-btn" onclick="switchTab('style', event)">Estilo</button>
+                <button class="tab-btn" onclick="switchTab('advanced', event)">Avanzado</button>
+            </div>
+
+            <div id="camera" class="controls-panel active">
+                <div class="button-grid">
+                    <button class="option-btn active" onclick="selectCamera('Frontal', event)">Frontal</button>
+                    <button class="option-btn" onclick="selectCamera('Perfil', event)">Perfil</button>
+                    <button class="option-btn" onclick="selectCamera('3/4', event)">3/4</button>
+                    <button class="option-btn" onclick="selectCamera('Aereo', event)">Aéreo</button>
+                </div>
+            </div>
+
+            <div id="style" class="controls-panel">
+                <div class="button-grid">
+                    <button class="option-btn" onclick="selectStyle('Pixar', event)">Pixar</button>
+                    <button class="option-btn" onclick="selectStyle('Comic', event)">Comic</button>
+                    <button class="option-btn" onclick="selectStyle('Foto', event)">Foto</button>
+                    <button class="option-btn" onclick="selectStyle('Acuarela', event)">Acuarela</button>
+                    <button class="option-btn" onclick="selectStyle('Cyberpunk', event)">Cyber</button>
+                    <button class="option-btn" onclick="selectStyle('Dark', event)">Dark</button>
+                </div>
+            </div>
+
+            <div id="advanced" class="controls-panel">
+                <div>
+                    <label class="control-label">Pasos: <span id="stepsVal">30</span></label>
+                    <input type="range" min="20" max="50" value="30" class="slider" id="stepsSlider" oninput="document.getElementById('stepsVal').textContent = this.value">
+                </div>
+                <div style="margin-top: 8px;">
+                    <label class="control-label">Guidance: <span id="guidanceVal">12.5</span></label>
+                    <input type="range" min="5" max="20" step="0.5" value="12.5" class="slider" id="guidanceSlider" oninput="document.getElementById('guidanceVal').textContent = this.value">
+                </div>
+            </div>
+
+            <button class="generate-btn" id="generateBtn" onclick="generateImage()">⚡ Generar</button>
+            <div id="statusMsg" class="status-message"></div>
+        </div>
+
+        <!-- CANVAS CENTER -->
+        <div class="canvas-center">
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <button class="toolbar-btn" onclick="loadMarketplace()">Marketplace</button>
+                    <button class="toolbar-btn" onclick="toggleHistory()">Historial</button>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                    <button class="toolbar-btn" onclick="downloadImage()">⬇️</button>
+                    <button class="toolbar-btn" onclick="clearCanvas()">🗑️</button>
+                </div>
+            </div>
+
+            <div class="canvas-area">
+                <div class="canvas-display" id="canvasDisplay">
+                    <div class="canvas-placeholder">
+                        <div>✨</div>
+                    </div>
+                </div>
+
+                <div class="canvas-actions">
+                    <button onclick="generateImage()" style="background: linear-gradient(135deg, #06b6d4, #8b5cf6); color: white;">⚡ GENERAR</button>
+                    <button onclick="downloadImage()" style="background: rgba(139, 92, 246, 0.2); color: #06b6d4;">⬇️ DESCARGAR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIDEBAR RIGHT (DESKTOP ONLY) -->
+        <div class="sidebar-right">
+            <div>
+                <div class="sidebar-header">Marketplace - 100+ Prompts</div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Categoría</label>
+                    <select id="categoryFilter" class="filter-select" onchange="filterPrompts()">
+                        <option value="">Todas</option>
+                        <option value="Fantasy">Fantasy</option>
+                        <option value="Sci-Fi">Sci-Fi</option>
+                        <option value="Art">Art</option>
+                        <option value="Nature">Nature</option>
+                        <option value="Character">Character</option>
+                        <option value="Architecture">Archit.</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Tier</label>
+                    <select id="tierFilter" class="filter-select" onchange="filterPrompts()">
+                        <option value="">Todos</option>
+                        <option value="standard">Standard</option>
+                        <option value="premium">Premium</option>
+                    </select>
+                </div>
+
+                <div id="promptsMarketplace" class="prompts-marketplace">
+                    <div style="text-align: center; color: #666; padding: 12px; font-size: 9px;">Cargando...</div>
+                </div>
+            </div>
+
+            <div>
+                <div class="sidebar-header">Colores</div>
+                <div class="color-palette" id="colorPalette"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let audioContext = null;
+        let isSoundEnabled = true;
+        const creativeIdeas = [
+            "Un astronauta buscando vida extraterrestre en un planeta alienígena, atmósfera púrpura",
+            "Un dragón hecho de cristal brillando bajo luz dorada, bosque encantado",
+            "Un viajero en el tiempo saltando entre épocas diferentes",
+            "Una ciudad submarina futurista con bioluminiscencia",
+            "Un mago antiguo descifrando antiguos símbolos mágicos",
+            "Un robot artista pintando un lienzo blanco",
+            "Una biblioteca interdimensional con libros que emiten luz",
+            "Un explorador descubriendo una ruina maya en la selva",
+            "Una persona surfeando en nubes de colores en el cielo",
+            "Un laboratorio alquímico antiguo con pociones brillantes"
+        ];
+
+        const state = {
+            selectedCamera: 'Frontal',
+            selectedStyle: 'Ninguno',
+            currentImageUrl: null,
+            isGenerating: false,
+            allPrompts: [],
+        };
+
+        function toggleSound() {
+            isSoundEnabled = !isSoundEnabled;
+            document.getElementById('soundToggle').textContent = isSoundEnabled ? '🔊' : '🔇';
+        }
+
+        function playSound(type = 'generate') {
+            if (!isSoundEnabled) return;
+            if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const sounds = { generate: [440, 540, 640, 740], success: [523, 659, 784], click: [330] };
+            const notes = sounds[type] || sounds.generate;
+            let time = audioContext.currentTime;
+            notes.forEach((freq) => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain); gain.connect(audioContext.destination);
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.2, time);
+                gain.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
+                osc.start(time); osc.stop(time + 0.1);
+                time += 0.12;
+            });
+        }
+
+        function panicCreative() {
+            playSound('click');
+            const ideas = [];
+            for (let i = 0; i < 3; i++) ideas.push(creativeIdeas[Math.floor(Math.random() * creativeIdeas.length)]);
+            document.getElementById('promptInput').value = ideas.join(' + ');
+            showStatus('3 Ideas! 🎲', 'success');
+        }
+
+        function switchTab(tabName, evt) {
+            document.querySelectorAll('.controls-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            if (evt?.currentTarget) evt.currentTarget.classList.add('active');
+        }
+
+        function selectCamera(camera, evt) {
+            state.selectedCamera = camera;
+            document.querySelectorAll('#camera .option-btn').forEach(b => b.classList.remove('active'));
+            if (evt?.currentTarget) evt.currentTarget.classList.add('active');
+            playSound('click');
+        }
+
+        function selectStyle(style, evt) {
+            state.selectedStyle = style;
+            document.querySelectorAll('#style .option-btn').forEach(b => b.classList.remove('active'));
+            if (evt?.currentTarget) evt.currentTarget.classList.add('active');
+            playSound('click');
+        }
+
+        function toggleInpaint() {
+            showStatus('Inpainting: Genera imagen primero', 'info');
+        }
+
+        async function loadMarketplace() {
+            playSound('click');
+            showStatus('Cargando...', 'info');
+            try {
+                const response = await fetch('/marketplace/prompts');
+                const data = await response.json();
+                if (data.success) {
+                    state.allPrompts = data.prompts;
+                    renderPrompts(data.prompts);
+                    showStatus(`✅ ${data.total} prompts`, 'success');
+                } else throw new Error(data.error);
+            } catch (error) {
+                showStatus('Error: ' + error.message, 'error');
+            }
+        }
+
+        function renderPrompts(prompts) {
+            const container = document.getElementById('promptsMarketplace');
+            if (prompts.length === 0) {
+                container.innerHTML = '<div style="color: #666; padding: 10px; text-align: center; font-size: 9px;">Sin resultados</div>';
+                return;
+            }
+            container.innerHTML = prompts.map(p => `
+                <div class="prompt-card">
+                    <div class="prompt-card-title">${p.title}</div>
+                    <div class="prompt-card-category">${p.category}</div>
+                    <div class="prompt-card-price">$${p.price.toFixed(2)}</div>
+                    <button style="width: 100%; margin-top: 6px; padding: 4px; background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 4px; color: #06b6d4; font-size: 9px; cursor: pointer;" onclick="usePrompt('${p.id}', \`${p.prompt.replace(/`/g, '\\`')}\`)">Usar</button>
+                </div>
+            `).join('');
+        }
+
+        function usePrompt(promptId, promptText) {
+            document.getElementById('promptInput').value = promptText;
+            showStatus('✅ Prompt cargado', 'success');
+            playSound('success');
+        }
+
+        function filterPrompts() {
+            const category = document.getElementById('categoryFilter').value;
+            const tier = document.getElementById('tierFilter').value;
+            let filtered = state.allPrompts;
+            if (category) filtered = filtered.filter(p => p.category === category);
+            if (tier) filtered = filtered.filter(p => p.tier === tier);
+            renderPrompts(filtered);
+        }
+
+        async function generateImage() {
+            const promptText = document.getElementById('promptInput').value.trim();
+            if (!promptText) { showStatus('Escribe un prompt', 'error'); return; }
+            if (state.isGenerating) return;
+
+            state.isGenerating = true;
+            const btn = document.getElementById('generateBtn');
+            btn.classList.add('loading');
+            btn.textContent = 'Generando...';
+            playSound('generate');
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: promptText,
+                        style: state.selectedStyle,
+                        camera: state.selectedCamera,
+                        num_inference_steps: parseInt(document.getElementById('stepsSlider').value),
+                        guidance_scale: parseFloat(document.getElementById('guidanceSlider').value)
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    state.currentImageUrl = data.imageUrl;
+                    document.getElementById('canvasDisplay').innerHTML = `<img src="${data.imageUrl}" alt="Generated">`;
+                    playSound('success');
+                    showStatus('¡Listo!', 'success');
+                } else throw new Error(data.error);
+            } catch (error) {
+                showStatus('Error: ' + error.message, 'error');
+            } finally {
+                state.isGenerating = false;
+                btn.classList.remove('loading');
+                btn.textContent = '⚡ Generar';
+            }
+        }
+
+        function toggleHistory() {
+            showStatus('Historial activado', 'info');
+        }
+
+        function downloadImage() {
+            if (!state.currentImageUrl) { showStatus('No hay imagen', 'error'); return; }
+            const link = document.createElement('a');
+            link.href = state.currentImageUrl;
+            link.download = `merlin-${Date.now()}.png`;
+            link.click();
+            playSound('success');
+            showStatus('¡Descargada!', 'success');
+        }
+
+        function clearCanvas() {
+            document.getElementById('canvasDisplay').innerHTML = '<div class="canvas-placeholder"><div>✨</div><div>Escribe tu idea</div></div>';
+            state.currentImageUrl = null;
+        }
+
+        function showStatus(text, type) {
+            const msg = document.getElementById('statusMsg');
+            msg.textContent = text;
+            msg.className = `status-message show ${type}`;
+            if (type !== 'error') setTimeout(() => msg.classList.remove('show'), 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('✅ Merlin AI Móvil OK');
+            loadMarketplace();
+        });
+    </script>
 </body>
-</html>`);
-});
-
-// =============================================
-// APP (/app)
-// =============================================
-app.get('/app', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'app.html'));
-});
-
-// =============================================
-// CREATOR PANEL (/creator)
-// =============================================
-app.get('/creator', (req, res) => {
-  res.send(`<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panel de Creador - Merlin AI</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Raleway:wght@400;600;700&display=swap');
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Raleway',sans-serif;background:#0a0a14;color:#e2e8f0;min-height:100vh;padding:20px}
-.container{max-width:900px;margin:0 auto}
-h1{font-family:'Cinzel',serif;font-size:2rem;background:linear-gradient(135deg,#f59e0b,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
-.subtitle{color:#94a3b8;margin-bottom:30px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:30px}
-@media(max-width:640px){.grid{grid-template-columns:1fr}}
-.card{background:#13132a;border:1px solid #2a2a55;border-radius:16px;padding:24px}
-.card h2{font-family:'Cinzel',serif;font-size:1.1rem;color:#a855f7;margin-bottom:16px}
-.stat-big{font-size:2.5rem;font-weight:700;font-family:'Cinzel',serif;background:linear-gradient(135deg,#f59e0b,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.stat-label{color:#94a3b8;font-size:.85rem;margin-top:4px}
-label{display:block;font-size:.75rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;margin-top:14px}
-label:first-child{margin-top:0}
-input,textarea,select{width:100%;background:#10101e;border:1px solid #2a2a55;border-radius:8px;color:#e2e8f0;padding:10px 12px;font-family:'Raleway',sans-serif;font-size:.9rem;transition:border-color .2s}
-input:focus,textarea:focus,select:focus{outline:none;border-color:#7c3aed}
-textarea{min-height:80px;resize:vertical}
-.btn-submit{background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;color:#fff;padding:14px;border-radius:10px;cursor:pointer;font-family:'Cinzel',serif;font-size:1rem;font-weight:700;width:100%;margin-top:16px;transition:all .3s;letter-spacing:.5px}
-.btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(124,58,237,.4)}
-.prompt-list{display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto}
-.prompt-item{background:#10101e;border:1px solid #2a2a55;border-radius:8px;padding:10px 12px}
-.prompt-item-name{font-weight:700;font-size:.85rem;color:#e2e8f0}
-.prompt-item-meta{display:flex;gap:12px;margin-top:4px;font-size:.75rem;color:#94a3b8}
-.badge-tier{padding:2px 8px;border-radius:4px;font-size:.65rem;font-weight:700;text-transform:uppercase}
-.badge-free{background:rgba(16,185,129,.2);color:#10b981}
-.badge-premium{background:rgba(245,158,11,.2);color:#f59e0b}
-.toast-area{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:99}
-.toast{background:#1a1a35;border:1px solid #2a2a55;color:#e2e8f0;padding:12px 16px;border-radius:10px;font-size:.85rem;max-width:280px;animation:ti .3s ease}
-@keyframes ti{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
-.info-box{background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.3);border-radius:10px;padding:14px;font-size:.85rem;color:#a855f7;line-height:1.6;margin-bottom:20px}
-.split-bar{display:flex;gap:0;border-radius:8px;overflow:hidden;margin-top:10px}
-.split-you{background:linear-gradient(135deg,#f59e0b,#d97706);flex:.8;padding:10px;text-align:center;font-weight:700;font-size:.85rem;color:#1a0f00}
-.split-merlin{background:#2a2a55;flex:.2;padding:10px;text-align:center;font-size:.75rem;color:#94a3b8}
-nav{display:flex;gap:16px;align-items:center;margin-bottom:30px;padding-bottom:16px;border-bottom:1px solid #2a2a55}
-.nav-logo{font-family:'Cinzel',serif;background:linear-gradient(135deg,#f59e0b,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:1.2rem;font-weight:700;text-decoration:none}
-.nav-link{color:#94a3b8;text-decoration:none;font-size:.9rem;transition:color .2s}
-.nav-link:hover{color:#a855f7}
-</style>
-</head>
-<body>
-<div class="container">
-  <nav>
-    <a href="/" class="nav-logo">🧙 Merlin AI</a>
-    <a href="/app" class="nav-link">→ App</a>
-    <a href="/creator" class="nav-link" style="color:#a855f7">Panel Creador</a>
-  </nav>
-  <h1>Panel de Creador</h1>
-  <p class="subtitle">Sube tus mejores prompts y gana dinero cada vez que alguien los compre</p>
-  <div class="info-box">
-    💰 <strong>Modelo de negocio:</strong> Tú creas los prompts, nosotros los vendemos. Por cada venta:<br>
-    <div class="split-bar" style="margin-top:10px">
-      <div class="split-you">80% → TÚ</div>
-      <div class="split-merlin">20% → Merlin</div>
-    </div>
-    <br>Pagos mensuales automáticos via Stripe. Sin límite de prompts.
-  </div>
-  <div class="grid">
-    <div class="card">
-      <h2>📊 Mis Estadísticas</h2>
-      <div id="creator-stats">
-        <div class="stat-big" id="stat-prompts">0</div><div class="stat-label">Prompts publicados</div>
-        <div class="stat-big" style="margin-top:16px" id="stat-sales">0</div><div class="stat-label">Ventas totales</div>
-        <div class="stat-big" style="margin-top:16px" id="stat-earnings">$0.00</div><div class="stat-label">Ganancias (80%)</div>
-      </div>
-    </div>
-    <div class="card">
-      <h2>📋 Mis Prompts</h2>
-      <div class="prompt-list" id="my-prompts">
-        <p style="color:#94a3b8;font-size:.85rem;text-align:center;padding:20px">Aún no has subido prompts.<br>¡Usa el formulario!</p>
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <h2>➕ Subir Nuevo Prompt</h2>
-    <label>Nombre del prompt *</label>
-    <input type="text" id="p-name" placeholder="Ej: Dragon Emperor Supreme" maxlength="60">
-    <label>Descripción / Prompt completo *</label>
-    <textarea id="p-desc" placeholder="Escribe el prompt completo aquí. Cuanto más detallado, mejor se vende..." maxlength="500"></textarea>
-    <label>Categoría *</label>
-    <select id="p-cat">
-      <option value="Fantasy">Fantasy</option>
-      <option value="Sci-Fi">Sci-Fi</option>
-      <option value="Art">Art</option>
-      <option value="Nature">Nature</option>
-      <option value="Character">Character</option>
-      <option value="Architecture">Architecture</option>
-    </select>
-    <label>Tipo *</label>
-    <select id="p-tier">
-      <option value="free">Gratis (más visibilidad)</option>
-      <option value="premium">Premium (cobra por cada uso)</option>
-    </select>
-    <div id="p-price-wrap" style="display:none">
-      <label>Precio (USD)</label>
-      <select id="p-price">
-        <option value="0.99">$0.99 (más ventas)</option>
-        <option value="1.49">$1.49 (balance)</option>
-        <option value="1.99">$1.99 (premium)</option>
-      </select>
-    </div>
-    <label>Tu nombre de creador *</label>
-    <input type="text" id="p-creator" placeholder="Ej: artmaster_pro" maxlength="30">
-    <label>Email (para recibir pagos)</label>
-    <input type="email" id="p-email" placeholder="tu@email.com">
-    <button class="btn-submit" onclick="submitPrompt()">🚀 Publicar en Marketplace</button>
-  </div>
-</div>
-<div class="toast-area" id="toasts"></div>
-<script>
-  let myPrompts = JSON.parse(localStorage.getItem('creator_prompts') || '[]');
-  
-  document.getElementById('p-tier').addEventListener('change', function() {
-    document.getElementById('p-price-wrap').style.display = this.value === 'premium' ? 'block' : 'none';
-  });
-  
-  function updateStats() {
-    document.getElementById('stat-prompts').textContent = myPrompts.length;
-    document.getElementById('stat-sales').textContent = myPrompts.reduce((a,p) => a + (p.sales||0), 0);
-    const earn = myPrompts.reduce((a,p) => a + ((p.sales||0) * (p.price||0) * 0.8), 0);
-    document.getElementById('stat-earnings').textContent = '$' + earn.toFixed(2);
-    renderMyPrompts();
-  }
-  
-  function renderMyPrompts() {
-    const el = document.getElementById('my-prompts');
-    if (!myPrompts.length) { el.innerHTML = '<p style="color:#94a3b8;font-size:.85rem;text-align:center;padding:20px">Aún no has subido prompts.<br>¡Usa el formulario!</p>'; return; }
-    el.innerHTML = myPrompts.map(p => \`<div class="prompt-item">
-      <div class="prompt-item-name">\${p.name}</div>
-      <div class="prompt-item-meta">
-        <span class="badge-tier \${p.tier==='premium'?'badge-premium':'badge-free'}">\${p.tier}</span>
-        <span>\${p.category}</span>
-        <span>\${p.tier==='premium'?'$'+p.price:'Gratis'}</span>
-        <span>\${p.sales||0} ventas</span>
-      </div>
-    </div>\`).join('');
-  }
-  
-  async function submitPrompt() {
-    const name = document.getElementById('p-name').value.trim();
-    const desc = document.getElementById('p-desc').value.trim();
-    const category = document.getElementById('p-cat').value;
-    const tier = document.getElementById('p-tier').value;
-    const price = tier === 'premium' ? parseFloat(document.getElementById('p-price').value) : 0;
-    const creator = document.getElementById('p-creator').value.trim();
-    const email = document.getElementById('p-email').value.trim();
-    if (!name || !desc || !creator) { toast('⚠️ Rellena nombre, descripción y creador', 'error'); return; }
-    try {
-      const r = await fetch('/creator/upload-prompt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, desc, category, tier, price, creator, email })
-      });
-      const d = await r.json();
-      if (d.success) {
-        const p = { id: d.id, name, desc, category, tier, price, creator, sales: 0, date: new Date().toISOString() };
-        myPrompts.unshift(p);
-        localStorage.setItem('creator_prompts', JSON.stringify(myPrompts));
-        updateStats();
-        document.getElementById('p-name').value = '';
-        document.getElementById('p-desc').value = '';
-        document.getElementById('p-creator').value = '';
-        document.getElementById('p-email').value = '';
-        toast('✅ Prompt publicado en el Marketplace!', 'success');
-      } else { toast('❌ Error: ' + (d.error || 'desconocido'), 'error'); }
-    } catch(e) { toast('❌ Error de conexión', 'error'); }
-  }
-  
-  function toast(msg, type = '') {
-    const c = document.getElementById('toasts');
-    const t = document.createElement('div');
-    t.className = 'toast';
-    if (type === 'error') t.style.borderColor = '#ef4444';
-    if (type === 'success') t.style.borderColor = '#10b981';
-    t.textContent = msg;
-    c.appendChild(t);
-    setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 300); }, 3500);
-  }
-  
-  updateStats();
-</script>
-</body>
-</html>`);
-});
-
-// =============================================
-// ADMIN DASHBOARD (/admin)
-// =============================================
-app.get('/admin', (req, res) => {
-  const uptime = Math.floor((Date.now() - analytics.startTime) / 1000 / 60);
-  res.send(`<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin - Merlin AI</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Raleway:wght@400;600&display=swap');
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Raleway',sans-serif;background:#0a0a14;color:#e2e8f0;min-height:100vh;padding:24px}
-.container{max-width:1100px;margin:0 auto}
-h1{font-family:'Cinzel',serif;font-size:1.8rem;background:linear-gradient(135deg,#f59e0b,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:24px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
-.stat-card{background:#13132a;border:1px solid #2a2a55;border-radius:12px;padding:20px}
-.stat-n{font-family:'Cinzel',serif;font-size:2rem;font-weight:700;background:linear-gradient(135deg,#f59e0b,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.stat-l{color:#94a3b8;font-size:.8rem;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
-.card{background:#13132a;border:1px solid #2a2a55;border-radius:12px;padding:20px;margin-bottom:16px}
-.card h2{font-family:'Cinzel',serif;font-size:1rem;color:#a855f7;margin-bottom:12px}
-.path-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a35;font-size:.85rem}
-.path-row:last-child{border:none}
-.green{color:#10b981}
-.status-on{display:inline-block;width:8px;height:8px;background:#10b981;border-radius:50%;animation:p 2s infinite;margin-right:6px}
-@keyframes p{0%,100%{opacity:1}50%{opacity:.4}}
-pre{background:#0a0a14;border:1px solid #2a2a55;border-radius:8px;padding:12px;font-size:.78rem;overflow-x:auto;color:#94a3b8;line-height:1.5}
-</style>
-</head>
-<body>
-<div class="container">
-<h1>🧙 Merlin AI · Admin</h1>
-<div class="grid">
-  <div class="stat-card"><div class="stat-n">${analytics.visits}</div><div class="stat-l">Visitas totales</div></div>
-  <div class="stat-card"><div class="stat-n">${analytics.generations}</div><div class="stat-l">Imágenes generadas</div></div>
-  <div class="stat-card"><div class="stat-n">${analytics.purchases}</div><div class="stat-l">Compras</div></div>
-  <div class="stat-card"><div class="stat-n">$${analytics.revenue.toFixed(2)}</div><div class="stat-l">Revenue total</div></div>
-  <div class="stat-card"><div class="stat-n">${uptime}m</div><div class="stat-l">Uptime</div></div>
-  <div class="stat-card"><div class="stat-n">${MARKETPLACE_PROMPTS.length + creatorPrompts.length}</div><div class="stat-l">Prompts en Market</div></div>
-</div>
-<div class="card">
-  <h2>🔧 Estado del Sistema</h2>
-  <div class="path-row"><span><span class="status-on"></span>Server</span><span class="green">Online</span></div>
-  <div class="path-row"><span><span class="status-on"></span>FAL.AI</span><span class="${FAL_KEY ? 'green' : ''}" style="${!FAL_KEY ? 'color:#ef4444' : ''}">${FAL_KEY ? '✅ Configurado' : '❌ Sin API Key'}</span></div>
-  <div class="path-row"><span><span class="status-on"></span>Stripe</span><span class="${STRIPE_SECRET ? 'green' : ''}" style="${!STRIPE_SECRET ? 'color:#f59e0b' : ''}">${STRIPE_SECRET ? '✅ Live Mode' : '⚠️ Sin configurar'}</span></div>
-  <div class="path-row"><span><span class="status-on"></span>Google Analytics</span><span class="${GA_MEASUREMENT_ID ? 'green' : ''}" style="${!GA_MEASUREMENT_ID ? 'color:#94a3b8' : ''}">${GA_MEASUREMENT_ID ? '✅ ' + GA_MEASUREMENT_ID : '➖ No configurado'}</span></div>
-</div>
-<div class="card">
-  <h2>📊 Páginas más visitadas</h2>
-  ${Object.entries(analytics.pageViews).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([p,n])=>`<div class="path-row"><span>${p}</span><span class="green">${n} visitas</span></div>`).join('') || '<p style="color:#94a3b8;font-size:.85rem">Sin datos aún</p>'}
-</div>
-<div class="card">
-  <h2>🛒 Prompts de Creadores (${creatorPrompts.length})</h2>
-  ${creatorPrompts.length === 0 ? '<p style="color:#94a3b8;font-size:.85rem">Ningún creador ha subido prompts aún</p>' :
-    creatorPrompts.map(p=>`<div class="path-row"><span>${p.name} · ${p.creator}</span><span style="color:#f59e0b">${p.tier==='premium'?'$'+p.price:'Gratis'}</span></div>`).join('')}
-</div>
-<div class="card">
-  <h2>📦 Variables de Entorno</h2>
-  <pre>FAL_KEY=${FAL_KEY?'✅ configurado':'❌ PENDIENTE'}
-STRIPE_SECRET_KEY=${STRIPE_SECRET?'✅ configurado':'❌ PENDIENTE'}
-STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET?'✅ configurado':'➖ opcional'}
-GA_MEASUREMENT_ID=${GA_MEASUREMENT_ID||'➖ pendiente (ej: G-XXXXXXXXXX)'}
-GA_API_SECRET=${GA_API_SECRET?'✅ configurado':'➖ opcional'}
-APP_URL=${APP_URL}</pre>
-</div>
-</div>
-<script>setTimeout(()=>location.reload(), 30000)</script>
-</body>
-</html>`);
-});
-
-// =============================================
-// API: GENERATE IMAGE
-// =============================================
-app.post('/generate', async (req, res) => {
-  const { prompt, num_inference_steps = 30, guidance_scale = 7.5, seed, image_size = 'square_hd' } = req.body;
-  if (!prompt) return res.status(400).json({ error: 'Prompt requerido' });
-  if (!FAL_KEY) return res.status(500).json({ error: 'FAL_KEY no configurada en Railway' });
-
-  analytics.generations++;
-  analytics.events.push({ type: 'generate', prompt: prompt.slice(0, 50), ts: Date.now() });
-
-  try {
-    const response = await fetch('https://fal.run/fal-ai/flux/dev', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Key ${FAL_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        prompt,
-        num_inference_steps: Math.min(Math.max(parseInt(num_inference_steps) || 30, 10), 50),
-        guidance_scale: Math.min(Math.max(parseFloat(guidance_scale) || 7.5, 1), 20),
-        seed: seed ? parseInt(seed) : Math.floor(Math.random() * 9999999),
-        image_size,
-        num_images: 1,
-        enable_safety_checker: true
-      })
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error('FAL error:', response.status, errText);
-      return res.status(response.status).json({ error: `FAL.AI error ${response.status}: ${errText.slice(0, 200)}` });
-    }
-
-    const data = await response.json();
-    const imageUrl = data?.images?.[0]?.url || data?.image?.url || null;
-    if (!imageUrl) return res.status(500).json({ error: 'FAL.AI no devolvió imagen', raw: JSON.stringify(data).slice(0, 200) });
-
-    // GA event
-    if (GA_MEASUREMENT_ID && GA_API_SECRET) {
-      sendGAEvent('generate_image', { prompt_length: prompt.length, image_size }).catch(() => {});
-    }
-
-    res.json({ imageUrl, seed: data.seed || seed });
-  } catch (err) {
-    console.error('Generate error:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// =============================================
-// API: MARKETPLACE PROMPTS
-// =============================================
-app.get('/marketplace/prompts', (req, res) => {
-  const { category, tier, page = 1, limit = 20 } = req.query;
-  let prompts = [...MARKETPLACE_PROMPTS, ...creatorPrompts];
-  if (category && category !== 'all') prompts = prompts.filter(p => p.category === category);
-  if (tier && tier !== 'all') prompts = prompts.filter(p => p.tier === tier);
-  const start = (parseInt(page) - 1) * parseInt(limit);
-  const paginated = prompts.slice(start, start + parseInt(limit));
-  res.json({ prompts: paginated, total: prompts.length, page: parseInt(page), pages: Math.ceil(prompts.length / parseInt(limit)) });
-});
-
-// =============================================
-// API: PURCHASE PROMPT (Stripe)
-// =============================================
-app.post('/purchase-prompt', async (req, res) => {
-  const { promptId, promptName, price } = req.body;
-  if (!promptId || !price) return res.status(400).json({ error: 'Datos incompletos' });
-
-  if (!stripe) {
-    return res.status(503).json({
-      error: 'Stripe no configurado',
-      message: 'Añade STRIPE_SECRET_KEY en Railway Variables',
-      docs: 'https://dashboard.stripe.com/apikeys'
-    });
-  }
-
-  try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [{
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: `🧙 Merlin AI - ${promptName}`,
-            description: 'Prompt profesional para generación de imágenes con IA',
-            images: [`${APP_URL}/images/merlin-logo.png`]
-          },
-          unit_amount: Math.round(parseFloat(price) * 100)
-        },
-        quantity: 1
-      }],
-      mode: 'payment',
-      success_url: `${APP_URL}/success?session_id={CHECKOUT_SESSION_ID}&prompt=${promptId}`,
-      cancel_url: `${APP_URL}/app`,
-      metadata: { promptId: String(promptId), promptName, price: String(price) }
-    });
-
-    analytics.events.push({ type: 'checkout_started', promptId, price, ts: Date.now() });
-    res.json({ url: session.url, sessionId: session.id });
-  } catch (err) {
-    console.error('Stripe error:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// =============================================
-// STRIPE WEBHOOK
-// =============================================
-app.post('/webhook/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
-  if (!stripe || !STRIPE_WEBHOOK_SECRET) return res.sendStatus(200);
-  let event;
-  try {
-    event = stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], STRIPE_WEBHOOK_SECRET);
-  } catch (err) {
-    console.error('Webhook error:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object;
-    const promptId = session.metadata?.promptId;
-    const price = parseFloat(session.metadata?.price || 0);
-    analytics.purchases++;
-    analytics.revenue += price;
-    purchases.push({ sessionId: session.id, promptId, price, ts: Date.now(), email: session.customer_details?.email });
-    // Aquí: trigger payout 80% al creador via Stripe Connect (futuro)
-    console.log(`✅ Compra completada: prompt ${promptId} · $${price}`);
-  }
-  res.sendStatus(200);
-});
-
-// =============================================
-// SUCCESS PAGE
-// =============================================
-app.get('/success', (req, res) => {
-  res.send(`<!DOCTYPE html>
-<html lang="es"><head><meta charset="UTF-8"><title>¡Compra completada! - Merlin AI</title>
-<style>body{font-family:sans-serif;background:#0a0a14;color:#e2e8f0;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:20px}
-.box{background:#13132a;border:1px solid #2a2a55;border-radius:20px;padding:48px;max-width:480px}
-h1{font-size:2rem;color:#10b981;margin-bottom:12px}p{color:#94a3b8;line-height:1.6;margin-bottom:20px}
-a{display:inline-block;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;text-decoration:none;padding:12px 32px;border-radius:50px;font-weight:700}</style>
-</head><body><div class="box">
-<div style="font-size:4rem;margin-bottom:16px">✨</div>
-<h1>¡Compra completada!</h1>
-<p>Tu prompt premium está ahora disponible. Regresa a la app y cargalo desde el Marketplace.</p>
-<a href="/app">→ Volver a Merlin AI</a>
-</div></body></html>`);
-});
-
-// =============================================
-// CREATOR API: UPLOAD PROMPT
-// =============================================
-app.post('/creator/upload-prompt', (req, res) => {
-  const { name, desc, category, tier, price, creator, email } = req.body;
-  if (!name || !desc || !creator) return res.status(400).json({ error: 'Faltan campos obligatorios' });
-
-  const validCats = ['Fantasy','Sci-Fi','Art','Nature','Character','Architecture'];
-  if (!validCats.includes(category)) return res.status(400).json({ error: 'Categoría inválida' });
-
-  const id = MARKETPLACE_PROMPTS.length + creatorPrompts.length + 1;
-  const prompt = {
-    id,
-    name: name.slice(0, 60),
-    desc: desc.slice(0, 500),
-    category,
-    tier: tier === 'premium' ? 'premium' : 'free',
-    price: tier === 'premium' ? Math.min(Math.max(parseFloat(price) || 0.99, 0.49), 9.99) : 0,
-    creator: creator.slice(0, 30),
-    email: email || null,
-    rating: 0,
-    uses: 0,
-    pending_review: true,
-    createdAt: new Date().toISOString()
-  };
-
-  creatorPrompts.push(prompt);
-  console.log(`➕ Nuevo prompt subido: "${name}" por ${creator}`);
-  res.json({ success: true, id, message: 'Prompt enviado para revisión. Aparecerá en el Marketplace en 24h.' });
-});
-
-// =============================================
-// CREATOR API: STATS
-// =============================================
-app.get('/creator/stats/:creator', (req, res) => {
-  const { creator } = req.params;
-  const myPrompts = creatorPrompts.filter(p => p.creator === creator);
-  const myPurchases = purchases.filter(p => myPrompts.some(mp => mp.id == p.promptId));
-  const revenue = myPurchases.reduce((a, p) => a + p.price * 0.8, 0);
-  res.json({ creator, prompts: myPrompts.length, sales: myPurchases.length, earnings: revenue.toFixed(2), promptList: myPrompts });
-});
-
-// =============================================
-// GOOGLE ANALYTICS - Measurement Protocol
-// =============================================
-async function sendGAEvent(eventName, params = {}) {
-  if (!GA_MEASUREMENT_ID || !GA_API_SECRET) return;
-  try {
-    await fetch(`https://www.google-analytics.com/mp/collect?measurement_id=${GA_MEASUREMENT_ID}&api_secret=${GA_API_SECRET}`, {
-      method: 'POST',
-      body: JSON.stringify({
-        client_id: 'merlin_server_' + Math.random().toString(36).slice(2),
-        events: [{ name: eventName, params }]
-      })
-    });
-  } catch(e) {}
-}
-
-// =============================================
-// ANALYTICS API
-// =============================================
-app.get('/api/analytics', (req, res) => {
-  res.json({
-    visits: analytics.visits,
-    pageViews: analytics.pageViews,
-    generations: analytics.generations,
-    purchases: analytics.purchases,
-    revenue: analytics.revenue.toFixed(2),
-    uptime: Math.floor((Date.now() - analytics.startTime) / 1000),
-    prompts: MARKETPLACE_PROMPTS.length + creatorPrompts.length,
-    recentEvents: analytics.events.slice(-20)
-  });
-});
-
-// =============================================
-// HEALTH CHECK
-// =============================================
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    version: '2.0.0',
-    uptime: Math.floor((Date.now() - analytics.startTime) / 1000),
-    fal: !!FAL_KEY,
-    stripe: !!STRIPE_SECRET,
-    ga: !!GA_MEASUREMENT_ID,
-    prompts: MARKETPLACE_PROMPTS.length + creatorPrompts.length,
-    generations: analytics.generations,
-    purchases: analytics.purchases
-  });
-});
-
-// =============================================
-// 404
-// =============================================
-app.use((req, res) => {
-  res.status(404).send(`<html><body style="background:#0a0a14;color:#e2e8f0;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center"><div><div style="font-size:4rem">🧙</div><h1 style="color:#7c3aed">404</h1><p style="color:#94a3b8">Página no encontrada</p><a href="/" style="color:#a855f7">← Volver al inicio</a></div></body></html>`);
-});
-
-// =============================================
-// START
-// =============================================
-app.listen(PORT, () => {
-  console.log(`\n🧙 MERLIN AI v2.0 iniciado en puerto ${PORT}`);
-  console.log(`📱 App: ${APP_URL}/app`);
-  console.log(`🏠 Landing: ${APP_URL}/`);
-  console.log(`🎨 Creator Panel: ${APP_URL}/creator`);
-  console.log(`📊 Admin: ${APP_URL}/admin`);
-  console.log(`\n🔧 Variables:`);
-  console.log(`   FAL_KEY: ${FAL_KEY ? '✅' : '❌ PENDIENTE'}`);
-  console.log(`   STRIPE_SECRET_KEY: ${STRIPE_SECRET ? '✅' : '⚠️ sin configurar'}`);
-  console.log(`   GA_MEASUREMENT_ID: ${GA_MEASUREMENT_ID || '➖ opcional'}`);
-  console.log(`\n✨ Prompts en marketplace: ${MARKETPLACE_PROMPTS.length}`);
-});
+</html>
