@@ -129,11 +129,19 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'landing.html'));
+    try {
+        res.sendFile(path.join(__dirname, 'landing.html'));
+    } catch (e) {
+        res.redirect('/app');
+    }
 });
 
 app.get('/app', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/landing', (req, res) => {
+    res.sendFile(path.join(__dirname, 'landing.html'));
 });
 
 app.get('/config', (req, res) => {
@@ -339,3 +347,5 @@ const server = app.listen(PORT, () => {
 });
 
 module.exports = app;
+
+
